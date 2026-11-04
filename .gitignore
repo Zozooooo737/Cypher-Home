@@ -1,0 +1,23 @@
+# Secrets
+.env
+*.env
+**/secrets.h
+**/passwd
+*.pem
+*.key
+
+# PlatformIO / Python
+.pio/
+.venv/
+__pycache__/
+*.pyc
+
+# Fichiers générés par PlatformIO
+compile_commands.json
+
+# Données locales des services
+docker/**/data/
+
+# Outils personnels
+.obsidian/
+.claude/settings.local.json

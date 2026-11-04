@@ -1,0 +1,105 @@
+# DECISIONS : Cypher Home
+
+> Source de vérité des décisions, du périmètre et de l'avancement fonctionnel. Prioritaire sur le cahier des charges (CC).
+> Une information vit dans un seul fichier : composants et broches physiques → `CONTEXTE_TECHNIQUE.md` ; étapes, ordre, dépendances, risques et plans B, cases cochées → `PLAN.md` ; tout le reste (périmètre, décisions, fonctions, journal) → ce fichier.
+> Mis à jour par l'étudiant : Claude propose le texte exact (commande BILAN), l'étudiant valide.
+
+## Périmètre
+- Système de mesure + surveillance + consultation à distance. Aucune régulation ni commande d'équipements.
+- Échéance : 1er décembre 2026.
+- « Contrôle » : ESSENTIEL = contrôle à distance (dashboard) ; IMPORTANT = contrôle sur le prototype via les boutons physiques.
+- Scénario de démo : connexion au dashboard, lecture des mesures, activation de la surveillance, détection de présence, délai de 10 s, intrusion avec image et buzzer. Alerte fumée MQ-2 en complément si prête.
+- Ordre de réduction du périmètre si le temps manque (du premier retiré au dernier) :
+  1. Estimation du nombre de personnes (F8)
+  2. Mode batterie et solaire (N7)
+  3. Courriel d'alerte (N8)
+  4. Mode « respect de l'environnement » et règles de veille écran (F16, F17)
+  5. Conservation configurable des données (N9)
+  6. Notifications configurables par type (F14), remplacées par une liste fixe
+  7. Réglage des consignes sur les boutons de la carte
+  8. Menus de l'écran réduits à un affichage fixe
+  9. Détection de présence par caméra : photo à la demande seulement (F7)
+
+## Décidé
+
+### Matériel et environnement
+- Carte : Arduino UNO R4 WiFi. Firmware en C++ (PlatformIO, VS Code, Windows). Serveur et dashboard en Python. Langages confirmés.
+- Tout le matériel du bon de commande est reçu. Caméra : ArduCAM OV5642 (B0068).
+- Ressources : multimètre disponible ; BME680 en module Joy-IT à broches ; boîtier 3D conçu et imprimé par l'étudiant (imprimante 3D disponible).
+- Alimentation : USB-C = mode principal et sûr ; batterie + cellule photovoltaïque = BONUS, traité après le mode USB-C.
+
+### Réseau et serveur
+- Serveur et base hébergés en local sur le PC. Le serveur écoute sur `0.0.0.0` ; dashboard à `http://IP_DU_PC:port`, accessible depuis PC et iPhone. Prévoir le pare-feu Windows et le profil réseau privé.
+- Wi-Fi : partage de connexion de l'iPhone en 2,4 GHz, « Maximiser la compatibilité » activé. L'IP du PC change à chaque session : une configuration unique dans le firmware est acceptée.
+
+### Méthode
+- `PLAN.md` fait référence pour l'ordre des étapes (Px.x).
+- Dépôt Git unique à la racine de `CypherHome`, hébergé sur GitHub (visibilité : privé). Convention de commits : voir `docs/CONVENTION_COMMITS.md`.
+
+### Affectation des broches (D3)
+(à compléter après validation)
+
+### Modèle de données (D7)
+(à compléter après validation : base retenue, puis entités et attributs)
+
+## À valider ou à trancher
+Décisions ouvertes uniquement. Une fois tranchée, la ligne est retirée d'ici et consignée dans « Décidé » avec son identifiant. L'étape qui dépend de chaque décision est indiquée dans `PLAN.md` (« Dépend de »).
+
+| # | Décision | Options et proposition actuelle |
+|---|---|---|
+| D1 | BME680 : bus SPI ou I2C | Non tranché. À décider d'après le manuel Joy-IT et le partage du SPI avec la caméra. |
+| D2 | Bibliothèque pour la caméra OV5642 | Non tranché. À décider d'après les tests de la caméra. |
+| D3 | Affectation des broches de la carte | Table proposée après l'essai d'ensemble sur breadboard ; à valider. |
+| D4 | Communication carte-serveur | Proposé : MQTT (mesures) + HTTP (photos). Repli : HTTP partout si MQTT bloque plus d'une demi-journée. |
+| D5 | Framework du dashboard | NiceGUI ou Streamlit. Comparer rapidement (rendu iPhone, graphiques, sessions), puis trancher. |
+| D6 | Raccordement du convertisseur à la carte (USB, 5V ou VIN) | Non tranché. Uniquement pour le mode batterie (BONUS). |
+| D7 | Base de données | Proposé : MongoDB (PyMongo). Structure des données à définir dans PLAN P5.1. |
+| D8 | Outillage serveur : Docker ou installation native Windows (MongoDB, Mosquitto) | Docker à tester ; repli : installation native. Choix d'outillage, pas une exigence du CC. |
+
+## Tableau des fonctions et d'avancement
+
+Légende
+- **Impl.** : `À faire` / `En cours` (au moins une étape liée commencée) / `Fait` (toutes les étapes liées cochées dans PLAN.md).
+- **Priorité** : ESSENTIEL (sans cela, pas de démo) / IMPORTANT (si tout va bien) / BONUS.
+- **Réf.** : F = fonction numérotée du CC ; N = élément du CC sans numéro F.
+- **Risque** : FAIBLE / MOYEN / ÉLEVÉ (estimations ; les plans B sont dans PLAN.md).
+- **Étapes** : étapes de PLAN.md qui réalisent la fonction.
+
+| Impl.   | Réf. | Fonction                                                                           | Priorité                                    | Justification                                                                | Dépendances / composants        | Risque                                                                                    | Réalisation                                | Étapes                 |
+| ------- | ---- | ---------------------------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------ | ---------------------- |
+| À faire | F1   | Mesurer l'environnement (BME680 : nom, unité, date ; lecture toutes les 5 s)       | ESSENTIEL                                   | Base de toute la démo.                                                       | BME680, bus I2C/SPI             | FAIBLE                                                                                    | firmware + dashboard                       | P1.2, P6.1, P7.1       |
+| À faire | F2   | Configurer consignes et tolérances (dashboard / 5 boutons)                         | IMPORTANT                                   | Valeurs par défaut du CC suffisantes pour la démo ; l'édition vient ensuite. | F3, base                        | FAIBLE                                                                                    | serveur + dashboard                        | P6.6, P7.3             |
+| À faire | F3   | Évaluer la conformité (conforme / hors tolérance / critique)                       | ESSENTIEL                                   | Donne du sens aux mesures et alimente les alertes.                           | F1, F2 ou valeurs par défaut    | FAIBLE                                                                                    | serveur (ou firmware pour LED) + dashboard | P6.1, P7.1             |
+| À faire | F4   | Enregistrer mesures (30 s) et événements                                           | ESSENTIEL                                   | Sans base, pas d'historique ni de preuve d'événement.                        | MongoDB, MQTT                   | MOYEN : structure des données non définie                                                 | serveur                                    | P5.1, P5.2             |
+| À faire | F5   | Consulter l'historique (graphiques, liste d'événements)                            | IMPORTANT                                   | Visible en démo ; un tableau des dernières valeurs suffit au minimum.        | F4                              | FAIBLE                                                                                    | dashboard                                  | P7.4                   |
+| À faire | F6   | Signaler les écarts (alerte dashboard, buzzer ; voyants : voir N2)                 | ESSENTIEL                                   | Montre la surveillance en action.                                            | F3, buzzer                      | FAIBLE                                                                                    | firmware + dashboard                       | P6.1, P6.2, P7.1       |
+| À faire | F7   | Détecter une présence par caméra + image d'intrusion                               | ESSENTIEL                                   | Cœur de la fonction sécurité.                                                | OV5642, SPI, HTTP, F9           | ÉLEVÉ : RAM de la carte, SPI partagé, transfert d'image, méthode de détection non arrêtée | firmware + serveur                         | P1.1, P2.5, P6.3, P6.4 |
+| À faire | F8   | Estimer le nombre de personnes                                                     | BONUS                                       | Secondaire dans le CC.                                                       | F7                              | ÉLEVÉ                                                                                     | serveur                                    | P6.7                   |
+| À faire | F9   | Activer / désactiver la surveillance                                               | ESSENTIEL                                   | Déclenche tout le scénario d'intrusion.                                      | MQTT (commande), LED orange     | FAIBLE                                                                                    | firmware + serveur + dashboard             | P6.3, P7.2             |
+| À faire | F10  | Gérer une intrusion (délai de 10 s, puis intrusion)                                | ESSENTIEL                                   | Scénario de démo principal.                                                  | F7, F9, F11, buzzer             | MOYEN : synchronisation carte/serveur                                                     | firmware + serveur                         | P6.3, P6.4, P8.1       |
+| À faire | F11  | Gérer le code PIN (dashboard = ESSENTIEL ; 5 boutons sur le prototype = IMPORTANT) | ESSENTIEL (dashboard) / IMPORTANT (boutons) | Le PIN dashboard suffit pour la démo.                                        | F10, 5 boutons                  | MOYEN : anti-rebond, PIN validé côté serveur                                              | firmware + serveur + dashboard             | P6.3, P7.2             |
+| À faire | F12  | Détecter fumée / gaz (MQ-2)                                                        | IMPORTANT                                   | Simple et démonstratif, mais fonction secondaire.                            | MQ-2, buzzer                    | MOYEN : préchauffage et seuil à calibrer                                                  | firmware + dashboard                       | P1.3, P6.2, P8.2       |
+| À faire | F13  | Afficher l'état du système (connexion, surveillance, dernière communication)       | ESSENTIEL                                   | Indispensable pour savoir si l'appareil répond.                              | MQTT (statut / LWT)             | FAIBLE                                                                                    | serveur + dashboard                        | P6.1, P7.1             |
+| À faire | F14  | Configurer les notifications (par événement / paramètre)                           | BONUS                                       | Peu de valeur démontrable.                                                   | F15                             | FAIBLE                                                                                    | dashboard + serveur                        | P7.5                   |
+| À faire | F15  | Notifications dans l'application web                                               | IMPORTANT                                   | Une alerte visible suffit, sans réglage fin.                                 | F6, F10                         | FAIBLE                                                                                    | dashboard                                  | P7.4                   |
+| À faire | F16  | Gérer l'écran local (règles de veille)                                             | BONUS                                       | Confort, sans impact sur la démo.                                            | écran, MQTT                     | FAIBLE                                                                                    | firmware + dashboard                       | P6.6                   |
+| À faire | F17  | Mode « respect de l'environnement »                                                | BONUS                                       | Dépend de F16 et de l'énergie.                                               | F16                             | FAIBLE                                                                                    | firmware + dashboard                       | P6.6                   |
+| À faire | F18  | Authentifier l'utilisateur (identifiant + mot de passe)                            | ESSENTIEL                                   | Cybersécurité : attendu dans le parcours et dans le CC.                      | dashboard                       | MOYEN : hachage, stockage du secret                                                       | dashboard + serveur                        | P5.3                   |
+| À faire | N1   | Écran local (affichage mesures, états, alertes)                                    | IMPORTANT                                   | Valide la partie « sur place ».                                              | TFT ST7735S, SPI partagé        | MOYEN : partage SPI avec la caméra                                                        | firmware                                   | P1.4, P6.5             |
+| À faire | N2   | Voyants LED (rouge, bleue, jaune, orange)                                          | IMPORTANT                                   | Facile, bon retour visuel.                                                   | 4 LED, résistances, F3          | FAIBLE                                                                                    | firmware                                   | P1.5, P6.1             |
+| À faire | N3   | Boutons et menus locaux (navigation, réglages)                                     | IMPORTANT                                   | Contrôle direct sur le prototype.                                            | 5 boutons, N1                   | MOYEN : anti-rebond, interface de menus                                                   | firmware                                   | P1.5, P6.5             |
+| À faire | N4   | Buzzer (retours sonores, alertes)                                                  | ESSENTIEL                                   | Requis par F10 et F12.                                                       | SVM06N                          | FAIBLE                                                                                    | firmware                                   | P1.5, P6.2             |
+| À faire | N5   | Interrupteur général                                                               | ESSENTIEL                                   | Trivial, mais impose un choix de câblage.                                    | DS12A, alimentation             | FAIBLE                                                                                    | matériel                                   | P1.5, P3.2             |
+| À faire | N6   | Alimentation USB-C                                                                 | ESSENTIEL                                   | Mode sûr, mode principal du CC.                                              | carte                           | FAIBLE                                                                                    | matériel                                   | P1.7, P3.3             |
+| À faire | N7   | Alimentation batterie + solaire (A20)                                              | BONUS                                       | Plusieurs modules non testés ; point de raccordement non arrêté.             | LiPo, SunFlower, Step-Up, carte | ÉLEVÉ : tension de sortie du convertisseur, BMS, mesures                                  | matériel                                   | P11.1, P11.2           |
+| À faire | N8   | Courriel d'alerte (avec image)                                                     | BONUS                                       | Option explicite dans le CC.                                                 | F10, F12, SMTP                  | MOYEN : accès internet, secrets                                                           | serveur                                    | P7.5                   |
+| À faire | N9   | Conservation configurable (30 jours par défaut)                                    | BONUS                                       | 30 jours fixes par expiration MongoDB suffisent ; le réglage vient après.    | F4                              | FAIBLE                                                                                    | serveur + dashboard                        | P5.1, P7.4             |
+| À faire | N10  | Sécurité de base (auth MQTT, secrets hors Git, validation des entrées)             | ESSENTIEL                                   | Demandée dès le développement. TLS = bonus de fin de projet.                 | MQTT, serveur                   | MOYEN                                                                                     | serveur + firmware                         | P2.2, P5.3, P10.1      |
+| À faire | N11  | Consultation depuis un iPhone (A18)                                                | IMPORTANT                                   | Critère d'acceptation et contexte de test.                                   | réseau local, dashboard         | MOYEN : accès au serveur du PC via le partage de connexion, à vérifier                    | dashboard                                  | P2.4, P7.1             |
+
+## Journal
+- 2026-11-04 : mise en place du projet Claude et du dépôt.
+- 2026-11-04 : plan de réalisation généré, à valider.
+- 2026-11-04 : périmètre minimal fixé (priorités ESSENTIEL / IMPORTANT / BONUS) ; tableau des fonctions intégré à ce fichier comme tableau d'avancement.
+- 2026-11-04 : fichiers de référence harmonisés (une source par information, décisions numérotées D1 à D8, commande BILAN en trois blocs).
+- 2026-11-04 : P0.2 terminée : projet PlatformIO (UNO R4 WiFi) initialisé dans firmware/, compilation vérifiée avec `pio run -d firmware` (programme vide, non téléversé sur la carte), dépôt Git à la racine publié sur GitHub.
