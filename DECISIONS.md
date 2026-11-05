@@ -35,6 +35,10 @@
 ### Méthode
 - `PLAN.md` fait référence pour l'ordre des étapes (Px.x).
 - Dépôt Git unique à la racine de `CypherHome`, hébergé sur GitHub (visibilité : privé). Convention de commits : voir `docs/CONVENTION_COMMITS.md`.
+- Structure du firmware : pas de dossier `tests/`. Un module par composant dans `firmware/src/components/` (`<composant>.h/.cpp` ; noms de fichiers, fonctions et variables en anglais) avec `<composant>_setup()`, les fonctions principales réutilisées par le firmware final et `<composant>_test()`. `firmware/src/self_test.cpp` enchaîne les tests validés (`self_test_run()`) : appelée dans `loop()` pendant le développement, dans `setup()` (une fois) dans la version finale.
+- Broches et paramètres : `firmware/include/pins.h` (un bloc par composant listant toutes ses broches, celles sans définition en commentaire, index des broches de la carte en tête ; provisoire tant que D3 est ouverte) et `firmware/include/config.h` (`constexpr`, valeurs par défaut utiles au produit, modifiables plus tard depuis le dashboard). Les valeurs propres aux tests restent des constantes locales du `.cpp`. `firmware/include/secrets.h` (ignoré par Git, avec un `secrets.example.h` versionné) est créé au premier secret.
+- Sortie série : un script Python unique, `firmware/scripts/serial_monitor.py`, remplace le moniteur PlatformIO ; il affiche le texte et enregistre les images dans `firmware/output/` (ignoré par Git). En phase P1, les images passent par le port USB : transport provisoire de test, sans lien avec D4. Un `.venv` par dossier Python (`firmware/scripts/`, `server/`).
+- Fiches de test : une par composant dans `docs/tests/` (modèle `_modele.md`), une page, sans code, rédigées après validation. La fiche garde le câblage testé (daté), `pins.h` le câblage courant, la table D3 validée fait foi.
 
 ### Affectation des broches (D3)
 (à compléter après validation)
@@ -45,16 +49,16 @@
 ## À valider ou à trancher
 Décisions ouvertes uniquement. Une fois tranchée, la ligne est retirée d'ici et consignée dans « Décidé » avec son identifiant. L'étape qui dépend de chaque décision est indiquée dans `PLAN.md` (« Dépend de »).
 
-| # | Décision | Options et proposition actuelle |
-|---|---|---|
-| D1 | BME680 : bus SPI ou I2C | Non tranché. À décider d'après le manuel Joy-IT et le partage du SPI avec la caméra. |
-| D2 | Bibliothèque pour la caméra OV5642 | Non tranché. À décider d'après les tests de la caméra. |
-| D3 | Affectation des broches de la carte | Table proposée après l'essai d'ensemble sur breadboard ; à valider. |
-| D4 | Communication carte-serveur | Proposé : MQTT (mesures) + HTTP (photos). Repli : HTTP partout si MQTT bloque plus d'une demi-journée. |
-| D5 | Framework du dashboard | NiceGUI ou Streamlit. Comparer rapidement (rendu iPhone, graphiques, sessions), puis trancher. |
-| D6 | Raccordement du convertisseur à la carte (USB, 5V ou VIN) | Non tranché. Uniquement pour le mode batterie (BONUS). |
-| D7 | Base de données | Proposé : MongoDB (PyMongo). Structure des données à définir dans PLAN P5.1. |
-| D8 | Outillage serveur : Docker ou installation native Windows (MongoDB, Mosquitto) | Docker à tester ; repli : installation native. Choix d'outillage, pas une exigence du CC. |
+| #   | Décision                                                                       | Options et proposition actuelle                                                                        |
+| --- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| D1  | BME680 : bus SPI ou I2C                                                        | Non tranché. À décider d'après le manuel Joy-IT et le partage du SPI avec la caméra.                   |
+| D2  | Bibliothèque pour la caméra OV5642                                             | Non tranché. À décider d'après les tests de la caméra.                                                 |
+| D3  | Affectation des broches de la carte                                            | Table proposée après l'essai d'ensemble sur breadboard (P1.7), à partir de `pins.h` ; à valider.       |
+| D4  | Communication carte-serveur                                                    | Proposé : MQTT (mesures) + HTTP (photos). Repli : HTTP partout si MQTT bloque plus d'une demi-journée. |
+| D5  | Framework du dashboard                                                         | NiceGUI ou Streamlit. Comparer rapidement (rendu iPhone, graphiques, sessions), puis trancher.         |
+| D6  | Raccordement du convertisseur à la carte (USB, 5V ou VIN)                      | Non tranché. Uniquement pour le mode batterie (BONUS).                                                 |
+| D7  | Base de données                                                                | Proposé : MongoDB (PyMongo). Structure des données à définir dans PLAN P5.1.                           |
+| D8  | Outillage serveur : Docker ou installation native Windows (MongoDB, Mosquitto) | Docker à tester ; repli : installation native. Choix d'outillage, pas une exigence du CC.              |
 
 ## Tableau des fonctions et d'avancement
 
@@ -103,3 +107,4 @@ Légende
 - 2026-11-04 : périmètre minimal fixé (priorités ESSENTIEL / IMPORTANT / BONUS) ; tableau des fonctions intégré à ce fichier comme tableau d'avancement.
 - 2026-11-04 : fichiers de référence harmonisés (une source par information, décisions numérotées D1 à D8, commande BILAN en trois blocs).
 - 2026-11-04 : P0.2 terminée : projet PlatformIO (UNO R4 WiFi) initialisé dans firmware/, compilation vérifiée avec `pio run -d firmware` (programme vide, non téléversé sur la carte), dépôt Git à la racine publié sur GitHub.
+- 2026-11-05 : P0.3 terminée : modèle de fiche de test, structure du firmware définie et squelette créé (pins.h, config.h, self_test, main.cpp) ; compilation vérifiée avec pio run -d firmware (non téléversé sur la carte)

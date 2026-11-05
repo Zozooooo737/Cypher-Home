@@ -12,9 +12,9 @@ Une information vit dans un seul fichier. Ne les contredis pas ; en cas de confl
 | `CONTEXTE_TECHNIQUE.md` | composants, références, noms de broches officiels (à utiliser partout) |
 | `DECISIONS.md` | périmètre, échéance, décisions prises, décisions ouvertes (D1…), tableau des fonctions et avancement, journal |
 | `PLAN.md` | étapes ordonnées (P0.1 à P12.1), dépendances, risques et plans B, cases cochées |
-| `docs/` | cahier des charges (CC, visé, plus large que le périmètre réel) et bon de commande (BC) |
+| `docs/` | cahier des charges (CC, visé, plus large que le périmètre réel) et bon de commande (BC) ; fiches de test des composants dans `docs/tests/` |
 
-À lire au début de chaque session : `DECISIONS.md`, `PLAN.md`, `CONTEXTE_TECHNIQUE.md` ; `docs/` seulement si un détail fonctionnel manque.
+À lire au début de chaque session : `DECISIONS.md`, `PLAN.md`, `CONTEXTE_TECHNIQUE.md` ; `docs/` seulement si un détail fonctionnel manque. Pour tout travail dans `firmware/`, lis aussi `firmware/CLAUDE.md` : il contient la structure du firmware et les règles à appliquer à chaque composant.
 Le dépôt est la copie de référence. Une copie de `CONTEXTE_TECHNIQUE.md`, `DECISIONS.md` et `PLAN.md` existe dans le projet Claude Desktop : l'étudiant la remet à jour à la main après chaque modification.
 
 ## Organisation du dépôt
@@ -25,19 +25,30 @@ CypherHome/
 ├── DECISIONS.md
 ├── PLAN.md
 ├── docs/                    # CC, BC, CONVENTION_COMMITS.md
-│   └── tests/               # fiches de test des composants, matrice de compatibilité
+│   └── tests/               # _modele.md, fiches de test (une par composant), matrice de compatibilité
 ├── hardware/                # schéma KiCad, datasheets (voir hardware/CLAUDE.md)
 │   ├── kicad/
 │   └── datasheets/
-├── firmware/                # C++ PlatformIO (voir firmware/CLAUDE.md)
-│   └── tests/               # programmes de test des composants (un dossier par composant)
-├── server/                  # Python, un seul .venv (voir server/CLAUDE.md)
+├── firmware/                # C++ PlatformIO (voir firmware/CLAUDE.md : structure et règles)
+│   ├── include/             # pins.h, config.h, secrets.h (ignoré par Git)
+│   ├── src/                 # main.cpp, self_test, components/ (un module par composant)
+│   ├── scripts/             # serial_monitor.py (Python, son propre .venv)
+│   └── output/              # images de test (ignoré par Git)
+├── server/                  # Python, un seul .venv pour tout server/ (voir server/CLAUDE.md)
 │   ├── db/                  # couche MongoDB / PyMongo (voir server/db/CLAUDE.md)
 │   └── dashboard/           # tableau de bord web (voir server/dashboard/CLAUDE.md)
 ├── docker/                  # MongoDB + Mosquitto (voir docker/CLAUDE.md)
 └── cad/                     # boîtier 3D
 ```
 Travaille dans le dossier concerné par la tâche (hardware, firmware, server, docker) ; ne modifie pas un autre dossier sans le dire.
+
+## Conventions du dépôt
+- **Langue** : noms de fichiers, de fonctions et de variables du code en anglais (`snake_case`, fonctions préfixées par le nom du composant, par exemple `camera_setup()`). Commentaires de code et documents `.md` en français.
+- **Pas de dossier de tests séparé** : chaque composant du firmware a un module qui contient sa propre fonction de test (voir `firmware/CLAUDE.md`).
+- **Fiches de test** : une par composant dans `docs/tests/<composant>.md` (les 4 LED partagent une fiche), nom identique à celui du module, modèle `docs/tests/_modele.md`. Une page, sans code (elle renvoie au fichier du dépôt), rédigée une fois le composant validé sur le matériel par l'étudiant. Claude Code ne la rédige que si l'étudiant le demande, à partir des seules informations fournies (mesures, sortie série, photo) : jamais de valeur inventée, section non renseignée = « à compléter ». Comme elle est hors du dossier de travail, le dire.
+- **Câblage, trois niveaux** : la fiche garde le câblage *testé* (daté) ; `firmware/include/pins.h` garde le câblage *courant* ; la table D3 validée dans `DECISIONS.md` fait foi.
+- **Python** : un `.venv` par dossier Python (`firmware/scripts/`, `server/`), jamais committé. VS Code n'utilise qu'un interpréteur à la fois : l'étudiant sélectionne celui du dossier courant.
+- **Fichiers ignorés par Git** : secrets (`secrets.h`, `.env`), `.venv`, `firmware/output/` (les images de test montrent l'intérieur du logement). Pour une fiche, une seule photo choisie, sans élément personnel, est copiée dans `docs/tests/`.
 
 ## Règles de travail
 - Explications courtes ; développe seulement sur demande. Code fonctionnel directement, sans pédagogie ligne à ligne. Commentaires de code en français, simples, en tête de bloc.

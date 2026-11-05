@@ -7,21 +7,21 @@
 > « Dn » dans « Dépend de » renvoie à une décision ouverte de `DECISIONS.md` : elle doit être tranchée avant l'étape.
 
 ## Tableau de bord d'avancement
-| Phase | Sujet | Priorité | État |
-|---|---|---|---|
-| P0 | Cadrage | ESSENTIEL | [ ] |
-| P1 | Test des composants | ESSENTIEL | [ ] |
-| P2 | Test réseau précoce | ESSENTIEL | [ ] |
-| P3 | Câblage et schéma KiCad | ESSENTIEL | [ ] |
-| P4 | Code de vérification au démarrage | ESSENTIEL | [ ] |
-| P5 | Modèle de données et serveur | ESSENTIEL | [ ] |
-| P6 | Firmware | ESSENTIEL | [ ] |
-| P7 | Dashboard | ESSENTIEL | [ ] |
-| P8 | Intégration et tests | ESSENTIEL | [ ] |
-| P9 | Boîtier 3D et fixation (parallèle) | IMPORTANT | [ ] |
-| P10 | Sécurité (au fil de l'eau) | ESSENTIEL / BONUS | [ ] |
-| P11 | Batterie et solaire | BONUS | [ ] |
-| P12 | Compte rendu final | ESSENTIEL | [ ] |
+| Phase | Sujet                              | Priorité          | État |
+| ----- | ---------------------------------- | ----------------- | ---- |
+| P0    | Cadrage                            | ESSENTIEL         | [x]  |
+| P1    | Test des composants                | ESSENTIEL         | [ ]  |
+| P2    | Test réseau précoce                | ESSENTIEL         | [ ]  |
+| P3    | Câblage et schéma KiCad            | ESSENTIEL         | [ ]  |
+| P4    | Code de vérification au démarrage  | ESSENTIEL         | [ ]  |
+| P5    | Modèle de données et serveur       | ESSENTIEL         | [ ]  |
+| P6    | Firmware                           | ESSENTIEL         | [ ]  |
+| P7    | Dashboard                          | ESSENTIEL         | [ ]  |
+| P8    | Intégration et tests               | ESSENTIEL         | [ ]  |
+| P9    | Boîtier 3D et fixation (parallèle) | IMPORTANT         | [ ]  |
+| P10   | Sécurité (au fil de l'eau)         | ESSENTIEL / BONUS | [ ]  |
+| P11   | Batterie et solaire                | BONUS             | [ ]  |
+| P12   | Compte rendu final                 | ESSENTIEL         | [ ]  |
 
 Ordre : P0 → P1 → (P2 en parallèle dès P1.1 faite) → P3 → P4 → P5/P6 → P7 → P8 → P11. P9, P10 et P12 avancent en parallèle.
 
@@ -40,48 +40,49 @@ Ordre : P0 → P1 → (P2 en parallèle dès P1.1 faite) → P3 → P4 → P5/P6
   - Livrable : dépôt + `firmware/platformio.ini`.
   - Validation : `pio run` compile un programme vide.
   - Dépend de : rien.
-- [ ] **P0.3 Modèle de fiche de test** (IMPORTANT)
-  - Objectif : documenter chaque composant de la même façon.
-  - Livrable : `docs/tests/_modele.md` (réf., datasheet, câblage testé, bibliothèque, résultat, photo).
-  - Validation : le modèle est réutilisable tel quel.
+- [x] **P0.3 Modèle de fiche de test et structure du firmware** (IMPORTANT)
+  - Objectif : documenter chaque composant de la même façon et fixer la structure du firmware avant d'y ajouter le premier composant.
+  - Tâches : modèle de fiche ; squelette du firmware (dossiers, `pins.h`, `config.h`, `self_test`) ; `.gitignore` ; arborescence mise à jour dans CLAUDE.md.
+  - Livrable : `docs/tests/_modele.md` + squelette dans `firmware/` (convention dans DECISIONS.md, section Méthode).
+  - Validation : le modèle est réutilisable tel quel ; `pio run -d firmware` compile le squelette.
   - Dépend de : P0.2.
 
-**À collecter :** structure du dépôt, `platformio.ini`.
+**À collecter :** structure du dépôt, `platformio.ini`, modèle de fiche.
 
 ---
 
 ## P1 : Test des composants un par un
 
-Chaque fiche (dans `docs/tests/`) contient : intégrité, montage, programme minimal, bibliothèque, niveaux logiques, courant, bus utilisé. Les programmes de test sont dans `firmware/tests/<composant>/`.
+Chaque composant validé produit : un module `firmware/src/components/<composant>.h/.cpp` (setup, fonctions principales réutilisées par le firmware final, fonction de test) ; ses broches dans `firmware/include/pins.h` et ses paramètres utiles au produit dans `config.h` ; une ligne dans `self_test_run()` une fois validé sur le matériel ; une fiche d'une page `docs/tests/<composant>.md` (modèle `_modele.md`, rédigée après validation, sans code). Code et fiche sont committés ensemble. Il n'y a pas de dossier `firmware/tests/`. Le texte et les images reçus par le port série passent par `firmware/scripts/serial_monitor.py` (images enregistrées dans `firmware/output/`, ignoré par Git).
 
 - [ ] **P1.1 Caméra OV5642** (ESSENTIEL, à faire en premier)
   - Objectif : savoir si la caméra est exploitable sur cette carte.
-  - Tâches : lire les docs ArduCAM, câbler (SPI + I2C), tester la communication, capturer une image, mesurer taille du JPEG, temps de capture et de transfert, tester les hautes résolutions. Noter la bibliothèque utilisée (alimente D2). [H] RAM limitée : lecture de l'image par blocs depuis le tampon de la caméra, à confirmer.
-  - Livrable : `firmware/tests/camera/` + fiche + 1 photo de test.
+  - Tâches : lire les docs ArduCAM, câbler (SPI + I2C), tester la communication, capturer une image, mesurer taille du JPEG, temps de capture et de transfert, tester les hautes résolutions. Noter la bibliothèque utilisée (alimente D2). [H] RAM limitée : lecture de l'image par blocs depuis le tampon de la caméra, à confirmer. Écrire `firmware/scripts/serial_monitor.py` ; l'image est envoyée au PC par le port série USB (pas de Wi-Fi ni de HTTP à ce stade).
+  - Livrable : `firmware/src/components/camera.h/.cpp` + `firmware/scripts/serial_monitor.py` + fiche `docs/tests/camera.md` + 1 photo choisie copiée dans `docs/tests/`.
   - Validation : un JPEG valide arrive sur le PC, mesures notées.
-  - Dépend de : P0.2.
+  - Dépend de : P0.2, P0.3.
 - [ ] **P1.2 BME680** (ESSENTIEL)
   - Objectif : lire température, humidité, pression, gaz.
   - Tâches : trancher D1 (SPI ou I2C) ; vérifier dans le manuel Joy-IT le rôle de VIN et 3Vo ; programme de lecture.
-  - Livrable : programme + fiche.
+  - Livrable : module `components/bme680` + fiche.
   - Validation : valeurs plausibles et stables.
   - Dépend de : P0.2, D1.
 - [ ] **P1.3 MQ-2** (IMPORTANT)
   - Objectif : détecter une variation fumée/gaz.
   - Tâches : câbler VCC/GND/A0 ; noter le temps de préchauffage ; mesurer le courant au multimètre ; observer A0 en air normal puis avec une source faible. [H] sortie A0 compatible avec l'ADC de la carte, à vérifier.
-  - Livrable : programme + valeurs notées.
+  - Livrable : module `components/mq2` + fiche (valeurs notées).
   - Validation : variation nette entre air normal et source ; seuil initial proposé.
   - Dépend de : P0.2.
 - [ ] **P1.4 Écran ST7735S** (IMPORTANT)
   - Objectif : afficher texte et couleurs.
   - Tâches : câbler en tenant compte du 3,3 V ; déterminer si une adaptation de niveaux est nécessaire sur SCL/SDA/RES/DC/CS ; câbler BLK.
-  - Livrable : programme + fiche.
+  - Livrable : module `components/display` + fiche.
   - Validation : affichage correct, aucun composant chaud.
   - Dépend de : P0.2.
 - [ ] **P1.5 LED, buzzer, boutons, interrupteur DS12A** (ESSENTIEL : buzzer et interrupteur ; IMPORTANT : LED et boutons)
   - Objectif : valider les entrées/sorties simples.
   - Tâches : calculer les résistances des LED ; buzzer passif avec `tone()` ; boutons en `INPUT_PULLUP` + anti-rebond ; test de continuité des pattes des boutons (4) et du DS12A (3) pour fixer leur nommage dans CONTEXTE_TECHNIQUE.md.
-  - Livrable : programmes + noms de pattes validés.
+  - Livrable : modules `components/leds`, `buzzer`, `buttons` + fiches (le DS12A a une fiche, sans module) + noms de pattes validés.
   - Validation : chaque actionneur réagit, chaque bouton est lu proprement.
   - Dépend de : P0.2.
 - [ ] **P1.6 Matrice de compatibilité électrique** (ESSENTIEL)
@@ -92,9 +93,9 @@ Chaque fiche (dans `docs/tests/`) contient : intégrité, montage, programme min
   - Dépend de : P1.1 à P1.5.
 - [ ] **P1.7 Essai d'ensemble sur breadboard** (ESSENTIEL)
   - Objectif : vérifier que tout fonctionne en même temps.
-  - Tâches : tous les modules alimentés, bus partagés actifs, lecture simultanée capteurs + écran + caméra ; surveiller resets et valeurs erratiques ; vérifier le courant total ; proposer l'affectation des broches (soumise à D3).
-  - Livrable : photo + fiche + table d'affectation des broches proposée.
-  - Validation : fonctionnement simultané sans reset.
+  - Tâches : tous les modules alimentés, bus partagés actifs, lecture simultanée capteurs + écran + caméra ; surveiller resets et valeurs erratiques ; vérifier le courant total ; proposer l'affectation des broches (soumise à D3) ; relire l'index de `pins.h` (aucune broche utilisée deux fois, tout tient sur la carte).
+  - Livrable : photo + fiche + `pins.h` complet + table d'affectation des broches proposée.
+  - Validation : fonctionnement simultané sans reset ; `self_test_run()` passe avec tous les composants branchés. 
   - Dépend de : P1.6, D2.
 
 **À collecter :** datasheets, fiches de test, mesures de courant, taille d'image, photos des montages, matrice de compatibilité.
@@ -145,7 +146,7 @@ Chaque fiche (dans `docs/tests/`) contient : intégrité, montage, programme min
   - Validation : revue ligne par ligne contre la matrice de compatibilité.
   - Dépend de : P3.1, D3.
 - [ ] **P3.3 Câblage du prototype** (ESSENTIEL)
-  - Tâches : câbler selon le schéma ; liste de contrôle (continuité, polarité, pas de court-circuit) avant mise sous tension.
+  - Tâches : câbler selon le schéma ; liste de contrôle (continuité, polarité, pas de court-circuit) avant mise sous tension ; vérifier que pins.h correspond au câblage réel.
   - Livrable : photo + liste de contrôle.
   - Validation : prototype conforme au schéma.
   - Dépend de : P3.2.
@@ -156,8 +157,8 @@ Chaque fiche (dans `docs/tests/`) contient : intégrité, montage, programme min
 
 ## P4 : Code de vérification au démarrage
 
-- [ ] **P4.1 Module `self_test` dans `setup()`** (ESSENTIEL)
-  - Tâches : pour chaque composant, afficher OK/KO + valeur (capteurs) ou action visible (LED, buzzer) ; inclure caméra, écran, Wi-Fi.
+- [ ] **P4.1 Finaliser `self_test_run()`** (ESSENTIEL)
+  - Tâches : `self_test_run()` existe depuis P0.3 et reçoit une ligne par composant validé en P1 ; ajouter le test Wi-Fi (P2.1) ; afficher un récapitulatif OK/KO par composant ; déplacer l'appel de `loop()` vers `setup()` (exécution unique) ; un composant débranché donne un KO clair sans bloquer le démarrage ; l'image du test caméra n'est pas envoyée si aucun PC n'est connecté au port série. [H]
   - Livrable : `firmware/src/self_test.cpp`.
   - Validation : tout passe ; un composant débranché donne un KO clair.
   - Dépend de : P3.3, P2.1.
@@ -250,13 +251,14 @@ Chaque fiche (dans `docs/tests/`) contient : intégrité, montage, programme min
 ---
 
 ## Risques et plans B
-| Risque | Plan B |
-|---|---|
-| Image trop lourde ou trop lente | Réduire résolution ou débit ; envoi par blocs. |
-| Détection de présence trop gourmande sur la carte | Comparaison d'images sur le serveur (photos périodiques en mode surveillance). [H] à tester. |
-| Surveillance caméra irréaliste | Photo sur événement ou à la demande, sans détection ; sinon retirer F7 et envisager un autre capteur de présence (achat à valider). |
-| Partage SPI conflictuel | BME680 en I2C ; un CS par périphérique SPI ; réduire la fréquence SPI. |
-| Écran 3,3 V abîmé par du 5 V | Adaptation de niveaux dès P1.4. |
-| Chutes de tension ou resets | Mesurer le courant en P1.7 ; vérifier le point d'alimentation du MQ-2 ; découpler. |
-| Wi-Fi iPhone instable ou IP changeante | Noter l'IP au démarrage ; reconnexion automatique dans le firmware. |
-| Dérive des valeurs MQ-2 | Préchauffage ; seuil relatif à la mesure initiale. |
+| Risque                                                    | Plan B                                                                                                                              |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Image trop lourde ou trop lente                           | Réduire résolution ou débit ; envoi par blocs.                                                                                      |
+| Détection de présence trop gourmande sur la carte         | Comparaison d'images sur le serveur (photos périodiques en mode surveillance). [H] à tester.                                        |
+| Surveillance caméra irréaliste                            | Photo sur événement ou à la demande, sans détection ; sinon retirer F7 et envisager un autre capteur de présence (achat à valider). |
+| Partage SPI conflictuel                                   | BME680 en I2C ; un CS par périphérique SPI ; réduire la fréquence SPI.                                                              |
+| Écran 3,3 V abîmé par du 5 V                              | Adaptation de niveaux dès P1.4.                                                                                                     |
+| Chutes de tension ou resets                               | Mesurer le courant en P1.7 ; vérifier le point d'alimentation du MQ-2 ; découpler.                                                  |
+| Wi-Fi iPhone instable ou IP changeante                    | Noter l'IP au démarrage ; reconnexion automatique dans le firmware.                                                                 |
+| Dérive des valeurs MQ-2                                   | Préchauffage ; seuil relatif à la mesure initiale.                                                                                  |
+| Port série USB bloquant ou perte d'octets sans PC branché | Tester l'état du port avant d'envoyer ; image non envoyée si aucun PC. [H] à vérifier sur la R4.                                    |
