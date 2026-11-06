@@ -55,7 +55,7 @@ Ordre : P0 → P1 → (P2 en parallèle dès P1.1 faite) → P3 → P4 → P5/P6
 
 Chaque composant validé produit : un module `firmware/src/components/<composant>.h/.cpp` (setup, fonctions principales réutilisées par le firmware final, fonction de test) ; ses broches dans `firmware/include/pins.h` et ses paramètres utiles au produit dans `config.h` ; une ligne dans `self_test_run()` une fois validé sur le matériel ; une fiche d'une page `docs/tests/<composant>.md` (modèle `_modele.md`, rédigée après validation, sans code). Code et fiche sont committés ensemble. Il n'y a pas de dossier `firmware/tests/`. Le texte et les images reçus par le port série passent par `firmware/scripts/serial_monitor.py` (images enregistrées dans `firmware/output/`, ignoré par Git).
 
-- [ ] **P1.1 Caméra OV5642** (ESSENTIEL, à faire en premier)
+- [x] **P1.1 Caméra OV5642** (ESSENTIEL, à faire en premier)
   - Objectif : savoir si la caméra est exploitable sur cette carte.
   - Tâches : lire les docs ArduCAM, câbler (SPI + I2C), tester la communication, capturer une image, mesurer taille du JPEG, temps de capture et de transfert, tester les hautes résolutions. Noter la bibliothèque utilisée (alimente D2). [H] RAM limitée : lecture de l'image par blocs depuis le tampon de la caméra, à confirmer. Écrire `firmware/scripts/serial_monitor.py` ; l'image est envoyée au PC par le port série USB (pas de Wi-Fi ni de HTTP à ce stade).
   - Livrable : `firmware/src/components/camera.h/.cpp` + `firmware/scripts/serial_monitor.py` + fiche `docs/tests/camera.md` + 1 photo choisie copiée dans `docs/tests/`.
