@@ -67,9 +67,9 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Livrable : module `components/bme680` + fiche.
   - Validation : valeurs plausibles et stables.
   - Dépend de : P0.2, D1.
-- [ ] **P1.3 MQ-2** (IMPORTANT)
+- [x] **P1.3 MQ-2** (IMPORTANT)
   - Objectif : détecter une variation fumée/gaz.
-  - Tâches : câbler VCC/GND/A0 ; noter le temps de préchauffage ; mesurer le courant au multimètre ; observer A0 en air normal puis avec une source faible. [H] sortie A0 compatible avec l'ADC de la carte, à vérifier.
+  - Tâches : câbler VCC/GND/A0 ; enregistrer un démarrage à froid d'environ 25 min ; fixer la durée de préchauffage ; observer A0 en air normal puis avec une source faible ; tester une source faible (fumée d'allumette éteinte). Sortie A0 compatible avec l'ADC de la carte : vérifié (0,41 à 2,83 V mesurés, sans saturation).
   - Livrable : module `components/mq2` + fiche (valeurs notées).
   - Validation : variation nette entre air normal et source ; seuil initial proposé.
   - Dépend de : P0.2.
