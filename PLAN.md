@@ -73,9 +73,9 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Livrable : module `components/mq2` + fiche (valeurs notées).
   - Validation : variation nette entre air normal et source ; seuil initial proposé.
   - Dépend de : P0.2.
-- [ ] **P1.4 Écran ST7735S** (IMPORTANT)
+- [x] **P1.4 Écran ST7735S** (IMPORTANT)
   - Objectif : afficher texte et couleurs.
-  - Tâches : câbler en tenant compte du 3,3 V ; déterminer si une adaptation de niveaux est nécessaire sur SCL/SDA/RES/DC/CS ; câbler BLK.
+  - Tâches : câbler en tenant compte du 3,3 V ; déterminer si une adaptation de niveaux est nécessaire sur SCL/SDA/RES/DC/CS ; câbler BLK. Adaptation retenue : diviseurs 1 kOhm / 2 kOhm sur les 5 signaux ; VCC et BLK sur 3.3V.
   - Livrable : module `components/display` + fiche.
   - Validation : affichage correct, aucun composant chaud.
   - Dépend de : P0.2.
