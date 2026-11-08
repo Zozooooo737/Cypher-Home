@@ -50,8 +50,14 @@ Travaille dans le dossier concerné par la tâche (hardware, firmware, server, d
 - **Python** : un `.venv` par dossier Python (`firmware/scripts/`, `server/`), jamais committé. VS Code n'utilise qu'un interpréteur à la fois : l'étudiant sélectionne celui du dossier courant.
 - **Fichiers ignorés par Git** : secrets (`secrets.h`, `.env`), `.venv`, `firmware/output/` (les images de test montrent l'intérieur du logement). Pour une fiche, une seule photo choisie, sans élément personnel, est copiée dans `docs/tests/`.
 
+## Git : seul l'étudiant commite
+**Claude Code ne lance JAMAIS** `git add`, `git commit` (y compris `git commit --amend`), `git push`, `git reset`, `git stash` ni `git rebase`. Seul l'étudiant commite.
+- Autorisé : `git status`, `git diff`, `git log` (lecture seule).
+- À la fin de chaque tâche, Claude Code fournit **uniquement** un message de commit prêt à copier, conforme à `docs/CONVENTION_COMMITS.md`, dans un bloc de code. Il signale tout fichier de secrets modifié (`secrets.h`, `.env`).
+- Filet de sécurité : règles `deny` dans `.claude/settings.json`. Elles ne remplacent pas cette règle.
+
 ## Règles de travail
-- Explications courtes ; développe seulement sur demande. Code fonctionnel directement, sans pédagogie ligne à ligne. Commentaires de code en français, simples, en tête de bloc.
+- Explications courtes ; développe seulement sur demande. Code fonctionnel directement, sans pédagogie ligne à ligne (code et commentaires : voir « Règles de code »).
 - **Ne jamais prétendre qu'un montage ou un code a été testé.** Indique ce qui reste à vérifier sur le matériel, en fin de réponse.
 - Sépare toujours faits vérifiés / hypothèses / choix à valider par l'étudiant. N'invente ni valeurs, ni prix, ni résultats de tests, ni décisions. Si une information manque, pose peu de questions, mais ciblées.
 - Une décision ouverte (liste « À valider ou à trancher » de `DECISIONS.md`) n'est pas définitive : compare vite les options, recommande, puis attends la validation. Aucune affectation de broche ni choix de protocole n'est définitif tant qu'il n'est pas dans « Décidé ».
@@ -61,7 +67,13 @@ Travaille dans le dossier concerné par la tâche (hardware, firmware, server, d
 - Explique brièvement toute notion de cybersécurité, réseau, MQTT ou électronique que tu introduis (pare-feu Windows, profil réseau privé, `.venv` qui isole les bibliothèques Python, Docker qui isole des logiciels tiers complets : ce ne sont pas des alternatives équivalentes).
 - Sécurité, dès le développement : secrets dans un fichier de configuration non versionné (`.gitignore`), identifiants MQTT, validation des entrées, aucun mot de passe en dur. TLS et durcissement avancé : bonus de fin de projet.
 - Avant un gros développement, propose un plan court et attends la validation.
-- Commits : suis `docs/CONVENTION_COMMITS.md`. Ne committe jamais de secrets.
+- Commits : voir « Git : seul l'étudiant commite » ; messages selon `docs/CONVENTION_COMMITS.md`, jamais de secrets.
+
+## Règles de code
+- **Code minimal** : aller droit à l'essentiel ; ne produire que ce que la tâche demande. Pas de fonction, de constante, d'include, de test, de message, de cas d'erreur ni de paramètre « au cas où ». Une fonction n'existe que si elle est appelée.
+- Avant de rendre le travail : le relire et supprimer tout ce qui est inutile. Niveau attendu : `firmware/src/components/bme680.cpp`.
+- En cas de doute entre ajouter et ne pas ajouter : ne pas ajouter, et poser la question à l'étudiant.
+- **Commentaires** : en français, simples, en tête de bloc. Firmware C++ : règle plus stricte dans `firmware/CLAUDE.md` (« Règles de code du firmware »), avec celle de `config.h`.
 
 ## Commande BILAN
 Quand l'étudiant écrit « BILAN », réponds en trois blocs, dans cet ordre. Appuie-toi sur PLAN.md (étapes Px.x), DECISIONS.md et sur ce qui a été fait ou fourni pendant la session.

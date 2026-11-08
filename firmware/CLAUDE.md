@@ -5,6 +5,11 @@ Complète le `CLAUDE.md` racine. Ce fichier fixe la structure du firmware et les
 ## Principe
 Aucun code jetable : chaque composant est codé une seule fois, dans un module qui sert d'abord à le valider (P1), puis au firmware final (P6). Il n'y a pas de dossier `tests/` : la fonction de test vit dans le module du composant.
 
+## Règles de code du firmware
+Complètent les « Règles de code » du `CLAUDE.md` racine (code minimal).
+- **Commentaires** : aucun commentaire dans les `.cpp` de `src/`. Dans les `.h` de `src/`, une seule ligne de commentaire au-dessus de chaque signature de fonction, en français, simple. `pins.h` et `config.h` gardent leurs commentaires de regroupement.
+- **`config.h`** : une constante n'y entre que si le code de la tâche l'utilise.
+
 ## Commandes
 - Compiler : `pio run -d firmware` (depuis la racine du dépôt ; autorisé sans demander). Le framework compile avec `-w` (avertissements masqués) : pour les voir, compiler une copie temporaire du projet hors du dépôt avec `build_unflags = -w` et `build_flags = -Wall -Wextra`.
 - Téléverser : `pio run -d firmware -t upload`, uniquement quand l'étudiant dit que le câblage est vérifié et que la carte est branchée. Un seul programme peut tenir le port COM : arrêter le script série avant, ou le relancer pendant le téléversement (il attend que le port se libère).
@@ -39,7 +44,7 @@ firmware/
 Les modules apparaissent **un par un**, à l'étape du composant : ne crée pas un module, un script ou un fichier avant l'étape correspondante. Le DS12A (interrupteur général) n'a pas de module : il coupe l'alimentation, il a seulement une fiche. Les 4 LED forment un seul module `leds`.
 
 ## Un module par composant (`src/components/<composant>.h/.cpp`)
-Noms de fichiers, de fonctions et de variables en anglais (`snake_case`), commentaires en français, simples, en tête de bloc. Fonctions préfixées par le nom du composant, pas de classes. Messages affichés en français, sans accents (comme `self_test.cpp`).
+Noms de fichiers, de fonctions et de variables en anglais (`snake_case`), commentaires selon « Règles de code du firmware ». Fonctions préfixées par le nom du composant, pas de classes. Messages affichés en français, sans accents (comme `self_test.cpp`).
 
 Chaque module contient :
 1. **`bool <composant>_setup()`** : met en place le composant (modes des broches, bus SPI ou I2C, paramètres initiaux). Renvoie `false` si le composant ne répond pas. Ne bloque jamais : délai maximal.
@@ -62,7 +67,7 @@ Aucun numéro de broche en dur dans un module : tout vient de `pins.h`.
 - Condition d'arrêt : si le portage demande plus que de petits correctifs, ou si le composant n'est pas détecté alors que le câblage est correct, s'arrêter et rapporter l'erreur exacte avec les options. Ne jamais réécrire une bibliothèque sans l'accord de l'étudiant.
 
 ## Enchaînement des tests (`src/self_test.h/.cpp`)
-`void self_test_run()` appelle les `<composant>_test()`. On y ajoute **une ligne par composant après sa validation sur le matériel par l'étudiant** (évite les faux KO sur un composant non câblé). Exception, sur demande de l'étudiant : le composant en cours de mise au point peut y figurer avec le commentaire « en cours de validation sur le matériel » (cas de la caméra en P1.1). Le récapitulatif OK/KO est finalisé en P4.1.
+`void self_test_run()` appelle les `<composant>_test()`. On y ajoute **une ligne par composant après sa validation sur le matériel par l'étudiant** (évite les faux KO sur un composant non câblé). Exception, sur demande de l'étudiant : le composant en cours de mise au point peut y figurer (cas de la caméra en P1.1). Le récapitulatif OK/KO est finalisé en P4.1.
 
 - **Développement (P1 à P3)** : `setup()` de `main.cpp` appelle les `<composant>_setup()` ; `loop()` appelle `self_test_run()` suivi d'une pause (constante locale dans `main.cpp`, supprimée avec l'appel). Pendant la mise au point d'un composant, on peut n'appeler que son `<composant>_test()`.
 - **Version finale (P4.1)** : `self_test_run()` passe dans `setup()` (exécution unique au démarrage) ; `loop()` contient le firmware réel.
@@ -82,7 +87,7 @@ Faits vérifiés dans le framework (cœur Renesas 1.6.0, `libfsp.a`) :
 
 ## Paramètres : `include/config.h`
 - `constexpr` regroupés par composant, unité dans le nom (`MQ2_ALERT_THRESHOLD`, `BME680_READ_PERIOD_MS`).
-- **Règle** : une valeur qui a un sens dans le produit final (résolution de la photo, seuil MQ-2, période de mesure de 5 s, délai d'intrusion de 10 s, consignes et tolérances par défaut du CC) va dans `config.h`. Une valeur qui n'existe que pour le test reste une constante locale du `.cpp`.
+- **Règle** : une valeur qui a un sens dans le produit final (résolution de la photo, seuil MQ-2, période de mesure de 5 s, délai d'intrusion de 10 s, consignes et tolérances par défaut du CC) va dans `config.h`, au moment où le code l'utilise. Une valeur qui n'existe que pour le test reste une constante locale du `.cpp`.
 - Valeurs lisibles, converties dans le module vers les constantes de la bibliothèque. Cas de la résolution caméra : `config.h` contient directement la constante de la bibliothèque (`#define CAMERA_RESOLUTION OV5642_1024x768`, liste en commentaire) ; `camera.cpp` en tire la largeur et la hauteur par un tableau, et un `static_assert` refuse une valeur hors du tableau.
 - Ce sont des **valeurs par défaut**. Quand le serveur pourra les modifier (P6.6), le module aura une variable initialisée avec ce défaut, que le serveur écrasera. Rien à anticiper avant.
 - Ajoute une ligne seulement quand on en a besoin. Aucune valeur inventée : sinon propose-la à l'étudiant.
@@ -114,7 +119,7 @@ Un **seul script Python remplace le moniteur série PlatformIO**, pour tous les 
 1. Lis l'étape dans `PLAN.md` (tâches, livrable, validation, « Dépend de ») et les décisions ouvertes liées (D1 pour le BME680). Si une dépendance ou une décision bloque, dis-le avant de coder.
 2. Lis la section du composant dans `CONTEXTE_TECHNIQUE.md` (noms de broches, documentation). Vérifie niveaux logiques, courant et bus partagés. Vérifie la compatibilité de la bibliothèque avec la R4 avant de l'ajouter à `platformio.ini` ou à `lib/` (voir « Bibliothèques tierces »).
 3. Propose un plan court : broches provisoires, bibliothèque, fonctions du module, liste de contrôle de câblage. Attends la validation.
-4. Une fois validé : crée `components/<composant>.h/.cpp`, ajoute le bloc du composant dans `pins.h` (et l'index) et les paramètres utiles au produit dans `config.h`, puis compile.
+4. Une fois validé : crée `components/<composant>.h/.cpp`, ajoute le bloc du composant dans `pins.h` (et l'index) et les paramètres utiles au produit que le code utilise dans `config.h`, puis compile.
 5. Téléverse seulement quand l'étudiant confirme le câblage. Demande-lui la sortie de `<composant>_test()` et, pour un composant visible (LED, buzzer, écran), ce qu'il constate.
 6. Ne considère pas le composant validé tant que l'étudiant n'a pas confirmé le résultat sur le matériel. Alors seulement : ajoute **une ligne** dans `self_test_run()` (sauf exception demandée par l'étudiant, voir plus haut).
 7. La fiche `docs/tests/<composant>.md` n'est rédigée que si l'étudiant le demande (règles dans le `CLAUDE.md` racine).
