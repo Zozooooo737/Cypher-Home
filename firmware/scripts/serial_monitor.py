@@ -95,6 +95,8 @@ def receive_image(ser, header_line):
     if not end_line.startswith("IMG_END"):
         print("[moniteur] IMG_END absent à la position annoncée (octet manquant ou en trop ?)", flush=True)
         return
+    if not data.startswith(b"\xff\xd8"):
+        return
     parts = end_line.split()
     transfer_ms = parts[1] if len(parts) > 1 else "?"
 
