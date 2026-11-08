@@ -53,7 +53,7 @@ Ordre : P0 → P1 → (P2 en parallèle dès P1.1 faite) → P3 → P4 → P5/P6
 
 ## P1 : Test des composants un par un
 
-Chaque composant validé produit : un module `firmware/src/components/<composant>.h/.cpp` (setup, fonctions principales réutilisées par le firmware final, fonction de test) ; ses broches dans `firmware/include/pins.h` et ses paramètres utiles au produit dans `config.h` ; une ligne dans `self_test_run()` une fois validé sur le matériel ; une fiche d'une page `docs/tests/<composant>.md` (modèle `_modele.md`, rédigée après validation, sans code). Code et fiche sont committés ensemble. Il n'y a pas de dossier `firmware/tests/`. Le texte et les images reçus par le port série passent par `firmware/scripts/serial_monitor.py` (images enregistrées dans `firmware/output/`, ignoré par Git).
+Chaque composant validé produit : un module `firmware/src/components/<composant>.h/.cpp` (setup, fonctions principales réutilisées par le firmware final, fonction de test) ; ses broches dans `firmware/include/pins.h` et ses paramètres utiles au produit dans `config.h` ; une ligne dans `self_test_run()` une fois validé sur le matériel ; une fiche d'une page `docs/tests/<composant>.md` (modèle `_modele.md`, rédigée après validation, sans code). Code et fiche sont committés ensemble, par l'étudiant. Il n'y a pas de dossier `firmware/tests/`. Le texte et les images reçus par le port série passent par `firmware/scripts/serial_monitor.py` (images enregistrées dans `firmware/output/`, ignoré par Git).
 
 - [x] **P1.1 Caméra OV5642** (ESSENTIEL, à faire en premier)
   - Objectif : savoir si la caméra est exploitable sur cette carte.
@@ -61,7 +61,7 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Livrable : `firmware/src/components/camera.h/.cpp` + `firmware/scripts/serial_monitor.py` + fiche `docs/tests/camera.md` + 1 photo choisie copiée dans `docs/tests/`.
   - Validation : un JPEG valide arrive sur le PC, mesures notées.
   - Dépend de : P0.2, P0.3.
-- [ ] **P1.2 BME680** (ESSENTIEL)
+- [x] **P1.2 BME680** (ESSENTIEL)
   - Objectif : lire température, humidité, pression, gaz.
   - Tâches : trancher D1 (SPI ou I2C) ; vérifier dans le manuel Joy-IT le rôle de VIN et 3Vo ; programme de lecture.
   - Livrable : module `components/bme680` + fiche.
@@ -87,7 +87,7 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Dépend de : P0.2.
 - [ ] **P1.6 Matrice de compatibilité électrique** (ESSENTIEL)
   - Objectif : éviter les erreurs avant le câblage.
-  - Tâches : tableau composant / tension d'alimentation / niveau logique / courant (datasheet + mesure) / bus / broche CS ou adresse I2C.
+  - Tâches : tableau composant / tension d'alimentation / niveau logique / courant (datasheet ; mesure du courant total en P1.7) / bus / broche CS ou adresse I2C.
   - Livrable : `docs/compatibilite.md`.
   - Validation : aucune cellule vide, chaque conflit a une solution.
   - Dépend de : P1.1 à P1.5.
