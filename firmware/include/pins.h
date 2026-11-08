@@ -11,10 +11,13 @@
 // Index des broches de la carte (une ligne par broche, ex. « D10 : CAMERA_CS »)
 // Sert à repérer les doublons et à préparer D3.
 // ---------------------------------------------------------------------------
+// D7         : DISPLAY_CS
+// D8         : DISPLAY_RES
+// D9         : DISPLAY_DC
 // D10        : CAMERA_CS
-// D11        : bus SPI, MOSI (caméra)
+// D11        : bus SPI, MOSI (caméra, écran)
 // D12        : bus SPI, MISO (caméra)
-// D13        : bus SPI, SCK (caméra) ; aussi la LED intégrée de la carte
+// D13        : bus SPI, SCK (caméra, écran) ; aussi la LED intégrée de la carte
 // SDA (= A4) : bus I2C, SDA (caméra, BME680) ; A4 n'est plus utilisable en analogique
 // SCL (= A5) : bus I2C, SCL (caméra, BME680) ; A5 n'est plus utilisable en analogique
 // A0         : MQ2_A0 ; aussi la sortie DAC de la carte (non utilisée)
@@ -60,6 +63,24 @@ constexpr uint8_t CAMERA_CS_PIN = 10;
 //   A0  -> A0  : définie dans le code
 //   D0  -> non connectée : sortie tout-ou-rien, seuil réglé par le potentiomètre du module
 constexpr uint8_t MQ2_A0_PIN = A0;
+
+// ---------------------------------------------------------------------------
+// Écran TFT ST7735S 1,8" 128x160, 3,3 V, DollaTek (CONTEXTE_TECHNIQUE.md, § 3.12)
+// Provisoire tant que D3 est ouverte (câblage de test P1.4).
+// Bus : SPI mode 0 partagé avec la caméra, sans MISO. Module en 3,3 V : SCL, SDA, RES, DC
+// et CS passent chacun par un diviseur 1 kOhm (côté carte) / 2 kOhm (vers GND), 5 V -> environ 3,3 V.
+// Broche officielle -> broche de la carte
+//   GND -> GND
+//   VCC -> 3.3V
+//   SCL -> D13 (diviseur) : bus SPI imposé par la carte (SCK)
+//   SDA -> D11 (diviseur) : bus SPI imposé par la carte (MOSI)
+//   RES -> D8  (diviseur) : définie dans le code
+//   DC  -> D9  (diviseur) : définie dans le code
+//   CS  -> D7  (diviseur) : définie dans le code
+//   BLK -> 3.3V           : rétroéclairage toujours allumé
+constexpr uint8_t DISPLAY_CS_PIN = 7;
+constexpr uint8_t DISPLAY_RES_PIN = 8;
+constexpr uint8_t DISPLAY_DC_PIN = 9;
 
 // ---------------------------------------------------------------------------
 // Modèle de bloc par composant (à recopier, ne pas décommenter tel quel)
