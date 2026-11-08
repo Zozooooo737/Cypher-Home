@@ -24,6 +24,14 @@ ARDUINO_VID = 0x2341
 READ_TIMEOUT_S = 2
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output"
+VALUE_COLUMN = 33  # colonne des valeurs ; même valeur que SELF_TEST_VALUE_COLUMN (self_test.cpp)
+
+
+def print_value(label, value):
+    """Affiche « [moniteur] libellé ..... valeur », aligné comme les tests du firmware."""
+    prefix = f"[moniteur] {label} "
+    dots = "." * (VALUE_COLUMN - 1 - len(prefix))
+    print(f"{prefix}{dots} {value}", flush=True)
 
 
 def find_port():
@@ -93,7 +101,9 @@ def receive_image(ser, header_line):
     end = data.rfind(b"\xff\xd9")
     jpeg = data[:end + 2] if end >= 0 else data
     path = save_image(jpeg)
-    print(f"[moniteur] {path.name} : {len(jpeg)} octets, transfert carte {transfer_ms} ms", flush=True)
+    print_value("photo enregistree", path.name)
+    print_value("taille", f"{len(jpeg)} octets")
+    print_value("transfert carte", f"{transfer_ms} ms")
 
 
 def monitor(ser):

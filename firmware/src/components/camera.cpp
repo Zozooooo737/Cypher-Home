@@ -6,10 +6,10 @@
 #include "camera.h"
 #include "config.h"
 #include "pins.h"
+#include "self_test.h"
 
 static_assert(CAMERA_RESOLUTION <= OV5642_2592x1944, "CAMERA_RESOLUTION : valeur non disponible, voir la liste dans config.h");
 
-// Largeur et hauteur : l'ordre doit suivre les constantes OV5642_* de ArduCAM.h (0 à 6)
 constexpr uint16_t CAMERA_SIZES[][2] = {{320, 240}, {640, 480}, {1024, 768}, {1280, 960}, {1600, 1200}, {2048, 1536}, {2592, 1944}};
 constexpr uint16_t CAMERA_WIDTH_PX = CAMERA_SIZES[CAMERA_RESOLUTION][0];
 constexpr uint16_t CAMERA_HEIGHT_PX = CAMERA_SIZES[CAMERA_RESOLUTION][1];
@@ -31,12 +31,6 @@ static bool s_buses_started = false;
 static bool s_ready = false;
 static uint32_t s_captured_length = 0;
 static uint32_t s_read_remaining = 0;
-static const char *s_error = "";
-
-static bool camera_fail(const char *error) {
-    s_error = error;
-    return false;
-}
 
 static void camera_write_reg(uint8_t address, uint8_t value) {
     SPI.beginTransaction(s_spi_settings);
@@ -82,16 +76,14 @@ bool camera_setup() {
 
     camera_write_reg(ARDUCHIP_TEST1, 0x55);
     if (camera_read_reg(ARDUCHIP_TEST1) != 0x55) {
-        return camera_fail("bus SPI : registre de test mal relu (verifier CS, SCK, MOSI, MISO)");
+        return false;
     }
 
     uint8_t id_high = 0;
     uint8_t id_low = 0;
-    if (!camera_sensor_read(0x300A, id_high) || !camera_sensor_read(0x300B, id_low)) {
-        return camera_fail("bus I2C : le capteur ne repond pas (verifier SDA, SCL)");
-    }
-    if (id_high != CAMERA_SENSOR_ID_HIGH || id_low != CAMERA_SENSOR_ID_LOW) {
-        return camera_fail("identifiant du capteur inattendu (OV5642 attendu)");
+    if (!camera_sensor_read(0x300A, id_high) || !camera_sensor_read(0x300B, id_low)
+        || id_high != CAMERA_SENSOR_ID_HIGH || id_low != CAMERA_SENSOR_ID_LOW) {
+        return false;
     }
 
     SPI.beginTransaction(s_spi_settings);
@@ -107,24 +99,15 @@ bool camera_setup() {
     s_camera.write_reg(ARDUCHIP_FRAMES, 0x00);
     SPI.endTransaction();
 
-    s_error = "";
     s_ready = true;
     return true;
-}
-
-bool camera_is_ready() {
-    return s_ready;
-}
-
-const char *camera_last_error() {
-    return s_error;
 }
 
 bool camera_capture(uint32_t &jpeg_length) {
     jpeg_length = 0;
     s_captured_length = 0;
     if (!s_ready) {
-        return camera_fail("camera non prete");
+        return false;
     }
 
     SPI.beginTransaction(s_spi_settings);
@@ -138,7 +121,7 @@ bool camera_capture(uint32_t &jpeg_length) {
         if (millis() - start_ms > CAMERA_CAPTURE_TIMEOUT_MS) {
             camera_write_reg(ARDUCHIP_FIFO, FIFO_CLEAR_MASK);
             s_ready = false;
-            return camera_fail("capture : delai maximal depasse");
+            return false;
         }
     }
 
@@ -147,7 +130,7 @@ bool camera_capture(uint32_t &jpeg_length) {
     SPI.endTransaction();
     if (length == 0 || length >= MAX_FIFO_SIZE) {
         camera_write_reg(ARDUCHIP_FIFO, FIFO_CLEAR_MASK);
-        return camera_fail("capture : longueur invalide");
+        return false;
     }
 
     s_captured_length = length;
@@ -188,11 +171,10 @@ void camera_read_end() {
 }
 
 bool camera_test() {
-    char line[160];
+    char line[48];
 
     if (!s_ready && !camera_setup()) {
-        Serial.print("[camera] KO : ");
-        Serial.println(s_error);
+        Serial.println("[camera] KO");
         return false;
     }
 
@@ -201,8 +183,7 @@ bool camera_test() {
     bool captured = camera_capture(length);
     unsigned long capture_ms = millis() - start_ms;
     if (!captured) {
-        Serial.print("[camera] KO : ");
-        Serial.println(s_error);
+        Serial.println("[camera] KO");
         return false;
     }
 
@@ -210,8 +191,6 @@ bool camera_test() {
              CAMERA_WIDTH_PX, CAMERA_HEIGHT_PX);
     Serial.print(line);
 
-    // Envoi par blocs ; flush() évite d'écraser le dernier octet d'un bloc.
-    // Le premier bloc doit commencer par FF D8 (début de JPEG) ; l'image est envoyée en entier dans tous les cas.
     static uint8_t block[CAMERA_READ_BLOCK_BYTES];
     bool first_block = true;
     bool soi_ok = false;
@@ -233,12 +212,13 @@ bool camera_test() {
     Serial.print(line);
 
     if (!soi_ok) {
-        Serial.println("[camera] KO : le tampon ne commence pas par un JPEG (FF D8 absent)");
+        Serial.println("[camera] KO");
         return false;
     }
 
-    snprintf(line, sizeof(line), "[camera] resolution %ux%u | format JPEG | capture %lu ms",
-             CAMERA_WIDTH_PX, CAMERA_HEIGHT_PX, capture_ms);
-    Serial.println(line);
+    snprintf(line, sizeof(line), "%ux%u", CAMERA_WIDTH_PX, CAMERA_HEIGHT_PX);
+    self_test_print("camera", "resolution", line);
+    self_test_print("camera", "format", "JPEG");
+    self_test_print("camera", "capture", capture_ms, "ms");
     return true;
 }

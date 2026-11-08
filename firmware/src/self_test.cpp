@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "self_test.h"
 #include "components/camera.h"
+// Colonne où commencent les valeurs ; même valeur que VALUE_COLUMN de serial_monitor.py
+constexpr int SELF_TEST_VALUE_COLUMN = 33;
 
 // Bannière affichée avant chaque test, même format pour tous les composants
 static void self_test_banner(const char *name) {

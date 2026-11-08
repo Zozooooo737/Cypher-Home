@@ -75,6 +75,30 @@ Travaille dans le dossier concerné par la tâche (hardware, firmware, server, d
 - En cas de doute entre ajouter et ne pas ajouter : ne pas ajouter, et poser la question à l'étudiant.
 - **Commentaires** : en français, simples, en tête de bloc. Firmware C++ : règle plus stricte dans `firmware/CLAUDE.md` (« Règles de code du firmware »), avec celle de `config.h`.
 
+## Convention d'affichage des tests
+S'applique à tous les composants du firmware (`<composant>_test()`) et aux lignes `[moniteur]` de `firmware/scripts/serial_monitor.py`.
+- Chaque test commence par la bannière `----- TEST NOM -----` (affichée par `self_test.cpp`) et se termine par une ligne vide.
+- Une valeur par ligne : `[étiquette] libellé ..... valeur unité`. Les points alignent toutes les valeurs sur une même colonne (`SELF_TEST_VALUE_COLUMN` dans `self_test.cpp`, `VALUE_COLUMN` dans `serial_monitor.py` : même valeur).
+- Les lignes sont écrites uniquement avec `self_test_print()` (`self_test.h` : texte, entier avec unité, flottant avec unité) ; côté Python, `print_value()`. Personne ne recopie la logique des points.
+- Échec (composant absent, bus muet, lecture invalide) : **une seule ligne**, `[étiquette] KO`, sans explication, sans conseil de câblage ni scan. Le diagnostic se fait avec la fiche `docs/tests/<composant>.md`.
+- Pas de fonction `<composant>_last_error()` : les fonctions principales renvoient simplement `false`.
+
+```text
+----- TEST CAMERA -----
+[moniteur] photo enregistree ... cam_20261108-125603.jpg
+[moniteur] taille .............. 52604 octets
+[moniteur] transfert carte ..... 1265 ms
+[camera] resolution ............ 1024x768
+[camera] format ................ JPEG
+[camera] capture ............... 218 ms
+
+----- TEST BME680 -----
+[bme680] temperature ........... 23.03 C
+[bme680] humidite .............. 47.59 %
+[bme680] pression .............. 1009.37 hPa
+[bme680] gaz ................... 29.40 kOhm
+```
+
 ## Commande BILAN
 Quand l'étudiant écrit « BILAN », réponds en trois blocs, dans cet ordre. Appuie-toi sur PLAN.md (étapes Px.x), DECISIONS.md et sur ce qui a été fait ou fourni pendant la session.
 
