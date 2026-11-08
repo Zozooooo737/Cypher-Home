@@ -22,6 +22,7 @@ Voir `DECISIONS.md`, sections « Décidé » et « À valider ou à trancher ».
 - Module : Joy-IT SEN-BME680
 - Documentation : https://www.joy-it.net/files/files/Produkte/SEN-BME680/SEN-BME680_Manual-EN_2026-04-17.pdf
 - Broches : VIN, 3Vo, GND, SCK, SDO, SDI, CS
+- Correspondance avec le manuel Joy-IT : VIN = VCC, SDI = SDA, SCK = SCL, SDO = SD0 ; 3Vo non documenté.
 
 ### 3.3 Caméra : ArduCAM OV5642 (B0068)
 - Quantité : 1
