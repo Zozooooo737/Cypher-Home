@@ -90,7 +90,7 @@ Faits vérifiés dans le framework (cœur Renesas 1.6.0, `libfsp.a`) :
 - **Règle** : une valeur qui a un sens dans le produit final (résolution de la photo, seuil MQ-2, période de mesure de 5 s, délai d'intrusion de 10 s, consignes et tolérances par défaut du CC) va dans `config.h`, au moment où le code l'utilise. Une valeur qui n'existe que pour le test reste une constante locale du `.cpp`.
 - Valeurs lisibles, converties dans le module vers les constantes de la bibliothèque. Cas de la résolution caméra : `config.h` contient directement la constante de la bibliothèque (`#define CAMERA_RESOLUTION OV5642_1024x768`, liste en commentaire) ; `camera.cpp` en tire la largeur et la hauteur par un tableau, et un `static_assert` refuse une valeur hors du tableau.
 - Ce sont des **valeurs par défaut**. Quand le serveur pourra les modifier (P6.6), le module aura une variable initialisée avec ce défaut, que le serveur écrasera. Rien à anticiper avant.
-- Ajoute une ligne seulement quand on en a besoin. Aucune valeur inventée : sinon propose-la à l'étudiant.
+- Aucune valeur inventée : sinon propose-la à l'étudiant.
 
 ## Secrets : `include/secrets.h`
 Créé seulement quand le premier secret apparaît (SSID et mot de passe Wi-Fi, identifiants MQTT, IP du PC). Ignoré par Git, avec un `secrets.example.h` versionné qui montre le format sans valeur réelle. Aucun secret dans `config.h` ni dans le code.

@@ -13,3 +13,7 @@ constexpr uint32_t SERIAL_BAUD = 460800;
 constexpr uint32_t CAMERA_SPI_FREQUENCY_HZ = 4000000;
 
 constexpr size_t CAMERA_READ_BLOCK_BYTES = 512;
+
+
+// BME680 : adresse I2C (SDO relié à GND)
+constexpr uint8_t BME680_I2C_ADDRESS = 0x76;

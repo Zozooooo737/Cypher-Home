@@ -2,6 +2,7 @@
 #include "config.h"
 #include "self_test.h"
 #include "components/camera.h"
+#include "components/bme680.h"
 
 constexpr unsigned long SELF_TEST_PAUSE_MS = 5000;
 
@@ -10,6 +11,7 @@ void setup() {
     delay(1000);
 
     camera_setup();
+    bme680_setup();
 }
 
 void loop() {

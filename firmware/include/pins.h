@@ -15,8 +15,9 @@
 // D11        : bus SPI, MOSI (caméra)
 // D12        : bus SPI, MISO (caméra)
 // D13        : bus SPI, SCK (caméra) ; aussi la LED intégrée de la carte
-// SDA (= A4) : bus I2C, SDA (caméra) ; A4 n'est plus utilisable en analogique
-// SCL (= A5) : bus I2C, SCL (caméra) ; A5 n'est plus utilisable en analogique
+// SDA (= A4) : bus I2C, SDA (caméra, BME680) ; A4 n'est plus utilisable en analogique
+// SCL (= A5) : bus I2C, SCL (caméra, BME680) ; A5 n'est plus utilisable en analogique
+// Adresses I2C (7 bits) : 0x3C caméra, 0x76 BME680
 
 // ---------------------------------------------------------------------------
 // Caméra ArduCAM Mini 5MP Plus, OV5642 (CONTEXTE_TECHNIQUE.md, § 3.3)
@@ -33,6 +34,20 @@
 //   VCC  -> 5V            : environ 300 mA en fonctionnement (doc Arducam)
 //   GND  -> GND
 constexpr uint8_t CAMERA_CS_PIN = 10;
+
+// ---------------------------------------------------------------------------
+// Capteur environnemental BME680, module Joy-IT SEN-BME680 (CONTEXTE_TECHNIQUE.md, § 3.2)
+// Provisoire tant que D3 est ouverte ; bus I2C proposé, D1 non tranchée.
+// Bus : I2C partagé avec la caméra, adresse 0x76 (BME680_I2C_ADDRESS dans config.h).
+// Aucune broche à définir dans le code : bus I2C imposé par la carte.
+// Broche officielle -> broche de la carte
+//   VIN -> 5V                : alimentation du module
+//   3Vo -> non connectée
+//   GND -> GND
+//   SCK -> SCL (près d'AREF) : horloge I2C, objet Wire
+//   SDI -> SDA (près d'AREF) : données I2C, objet Wire
+//   SDO -> GND               : fixe l'adresse I2C à 0x76
+//   CS  -> non connectée
 
 // ---------------------------------------------------------------------------
 // Modèle de bloc par composant (à recopier, ne pas décommenter tel quel)
