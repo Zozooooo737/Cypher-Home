@@ -3,6 +3,7 @@
 #include "self_test.h"
 #include "components/camera.h"
 #include "components/bme680.h"
+#include "components/mq2.h"
 
 constexpr unsigned long SELF_TEST_PAUSE_MS = 5000;
 
@@ -12,6 +13,7 @@ void setup() {
 
     camera_setup();
     bme680_setup();
+    mq2_setup();
 }
 
 void loop() {

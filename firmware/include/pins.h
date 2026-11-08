@@ -17,6 +17,7 @@
 // D13        : bus SPI, SCK (caméra) ; aussi la LED intégrée de la carte
 // SDA (= A4) : bus I2C, SDA (caméra, BME680) ; A4 n'est plus utilisable en analogique
 // SCL (= A5) : bus I2C, SCL (caméra, BME680) ; A5 n'est plus utilisable en analogique
+// A0         : MQ2_A0 ; aussi la sortie DAC de la carte (non utilisée)
 // Adresses I2C (7 bits) : 0x3C caméra, 0x76 BME680
 
 // ---------------------------------------------------------------------------
@@ -48,6 +49,17 @@ constexpr uint8_t CAMERA_CS_PIN = 10;
 //   SDI -> SDA (près d'AREF) : données I2C, objet Wire
 //   SDO -> GND               : fixe l'adresse I2C à 0x76
 //   CS  -> non connectée
+
+// ---------------------------------------------------------------------------
+// Capteur de gaz et fumée MQ-2 (CONTEXTE_TECHNIQUE.md, § 3.8)
+// Provisoire tant que D3 est ouverte (câblage de test P1.3).
+// Sortie analogique 0 à 5 V lue par l'ADC (référence : alimentation 5 V de la carte).
+// Broche officielle -> broche de la carte
+//   VCC -> 5V  : alimente aussi le chauffage du capteur
+//   GND -> GND
+//   A0  -> A0  : définie dans le code
+//   D0  -> non connectée : sortie tout-ou-rien, seuil réglé par le potentiomètre du module
+constexpr uint8_t MQ2_A0_PIN = A0;
 
 // ---------------------------------------------------------------------------
 // Modèle de bloc par composant (à recopier, ne pas décommenter tel quel)

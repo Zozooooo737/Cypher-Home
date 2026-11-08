@@ -2,6 +2,7 @@
 #include "self_test.h"
 #include "components/camera.h"
 #include "components/bme680.h"
+#include "components/mq2.h"
 
 // Colonne où commencent les valeurs ; même valeur que VALUE_COLUMN de serial_monitor.py
 constexpr int SELF_TEST_VALUE_COLUMN = 33;
@@ -54,6 +55,10 @@ void self_test_run() {
 
     self_test_banner("BME680");
     bme680_test();
+    Serial.println();
+
+    self_test_banner("MQ2");
+    mq2_test();
     Serial.println();
 
     Serial.println("=== Self-test : fin ===");

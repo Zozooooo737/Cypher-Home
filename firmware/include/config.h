@@ -17,3 +17,13 @@ constexpr size_t CAMERA_READ_BLOCK_BYTES = 512;
 
 // BME680 : adresse I2C (SDO relié à GND)
 constexpr uint8_t BME680_I2C_ADDRESS = 0x76;
+
+
+// MQ-2 : seuils sur l'échelle de mq2_read() (0 à 16383), tirés du démarrage à froid du 2026-11-08 (P1.3).
+// Préchauffage : aucune alerte avant MQ2_PREHEAT_S depuis la mise sous tension.
+constexpr uint32_t MQ2_PREHEAT_S = 300;
+
+// Alerte au-dessus de MQ2_ALERT_THRESHOLD sur N échantillons consécutifs ; fin sous MQ2_ALERT_END_THRESHOLD.
+constexpr uint16_t MQ2_ALERT_THRESHOLD = 3000;
+constexpr uint16_t MQ2_ALERT_END_THRESHOLD = 2500;
+constexpr uint8_t MQ2_ALERT_CONFIRM_SAMPLES = 2;
