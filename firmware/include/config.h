@@ -45,3 +45,7 @@ constexpr int8_t DISPLAY_ROW_OFFSET = 1;
 
 // Orientation : 0 ou 2 = portrait 128x160 ; 1 ou 3 = paysage 160x128 (changer 1 <-> 3 si l'image est à l'envers).
 constexpr uint8_t DISPLAY_ROTATION = 3;
+
+
+// Boutons : durée pendant laquelle une lecture doit rester stable pour être prise en compte (anti-rebond).
+constexpr unsigned long BUTTONS_DEBOUNCE_MS = 20;

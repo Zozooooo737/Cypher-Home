@@ -6,6 +6,9 @@
 #include "components/bme680.h"
 #include "components/mq2.h"
 #include "components/display.h"
+#include "components/leds.h"
+#include "components/buttons.h"
+#include "components/buzzer.h"
 
 constexpr unsigned long SELF_TEST_PAUSE_MS = 5000;
 
@@ -22,6 +25,9 @@ void setup() {
     bme680_setup();
     mq2_setup();
     display_setup();
+    leds_setup();
+    buttons_setup();
+    buzzer_setup();
 }
 
 void loop() {
