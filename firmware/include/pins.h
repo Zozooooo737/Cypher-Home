@@ -50,7 +50,7 @@ constexpr uint8_t CAMERA_CS_PIN = 10;
 
 // ---------------------------------------------------------------------------
 // Capteur environnemental BME680, module Joy-IT SEN-BME680 (CONTEXTE_TECHNIQUE.md, § 3.2)
-// Provisoire tant que D3 est ouverte ; bus I2C proposé, D1 non tranchée.
+// Provisoire tant que D3 est ouverte ; bus I2C (D1 tranchée).
 // Bus : I2C partagé avec la caméra, adresse 0x76 (BME680_I2C_ADDRESS dans config.h).
 // Aucune broche à définir dans le code : bus I2C imposé par la carte.
 // Broche officielle -> broche de la carte

@@ -6,7 +6,7 @@
 #include "pins.h"
 #include "self_test.h"
 
-constexpr uint8_t DISPLAY_TEST_TEXT_SIZE = 2;
+constexpr uint8_t DISPLAY_TEXT_SIZE = 2;
 
 class DisplayTft : public Adafruit_ST7735 {
 public:
@@ -24,11 +24,28 @@ bool display_setup() {
     return true;
 }
 
+void display_show_measures(const Bme680Data &data, uint16_t mq2_raw) {
+    s_tft.fillScreen(ST77XX_BLACK);
+    s_tft.setCursor(0, 0);
+    s_tft.setTextSize(DISPLAY_TEXT_SIZE);
+    s_tft.setTextColor(ST77XX_WHITE);
+    s_tft.print(data.temperature_c, 1);
+    s_tft.println(" C");
+    s_tft.print(data.humidity_pct, 1);
+    s_tft.println(" %");
+    s_tft.print(data.pressure_hpa, 1);
+    s_tft.println(" hPa");
+    s_tft.print(data.gas_kohm, 1);
+    s_tft.println(" kOhm");
+    s_tft.print("MQ2 ");
+    s_tft.println(mq2_raw);
+}
+
 bool display_test() {
     unsigned long start_ms = millis();
     s_tft.fillScreen(ST77XX_BLACK);
     s_tft.setCursor(0, 0);
-    s_tft.setTextSize(DISPLAY_TEST_TEXT_SIZE);
+    s_tft.setTextSize(DISPLAY_TEXT_SIZE);
     s_tft.setTextColor(ST77XX_WHITE);
     s_tft.println("Cypher Home");
     s_tft.println("Ecran OK");
