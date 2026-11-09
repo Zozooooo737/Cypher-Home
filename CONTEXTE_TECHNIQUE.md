@@ -70,13 +70,13 @@ Voir `DECISIONS.md`, sections « Décidé » et « À valider ou à trancher ».
 ### 3.10 Boutons poussoirs
 - Quantité : 5
 - Type : boutons poussoirs classiques, 4 pattes
-- Broches : 4 pattes par bouton. Noms validés au test de continuité (2026-11-09) : A1 (reliée à la broche de la carte) et B2 (reliée à GND) ; noms des deux autres pattes : à compléter
+- Broches : A1, A2, B1, B2 (4 pattes par bouton). Seules A1 (reliée à la broche de la carte) et B2 (reliée à GND) sont câblées (test de continuité du 2026-11-09).
 
 ### 3.11 Interrupteur général : DS12A
 - Quantité : 1
 - Type : interrupteur ON-OFF unipolaire rond clipsable à bascule, marquage 0/I, noir
 - Caractéristiques : 6 A/250 Vac (charge résistive), 10 A/24 Vac (charge résistive), 3 A (charge inductive) ; perçage 20,5 mm ; hauteur encastrable 16 mm ; hauteur des cosses 8 mm
-- Broches : 3 pattes (nommage à définir lors du test de continuité)
+- Broches : Borne 1, Borne 2 (2 bornes selon l'étudiant, à confirmer au test de continuité avant P3.2) : reliées sur ON, déconnectées sur OFF.
 
 ### 3.12 Écran couleur : TFT ST7735S 1,8″ 128×160, 3,3 V (DollaTek)
 - Quantité : 1
@@ -108,11 +108,11 @@ Voir `DECISIONS.md`, sections « Décidé » et « À valider ou à trancher ».
 
 ### 3.16 Registre à décalage : 74HC595
 - Quantité : 1
-- Référence : à noter
-- Datasheet : à noter
+- Référence : 74HC595
+- Datasheet : https://passionelectronique.fr/wp-content/uploads/74HC595_datasheet.pdf?pseSrc=pg74HC595arduino
 - Broches : VCC, GND, SER, SRCLK, RCLK, SRCLR, OE, QA, QB, QC, QD, QE, QF, QG, QH, QH'
+- Correspondance avec la datasheet (Philips) : SER = DS, SRCLK = SH_CP, RCLK = ST_CP, SRCLR = MR, QA à QH = Q0 à Q7, QH' = Q7'.
 
 ### 3.17 Résistances et câblage
 - LED : 4 × 270 Ω, une en série avec chaque LED (validé le 2026-11-09)
 - Écran ST7735S : diviseurs 1 kΩ (côté carte) / 2 kΩ (vers GND) sur les 5 signaux SCL, SDA, RES, DC et CS
-- Références : à noter

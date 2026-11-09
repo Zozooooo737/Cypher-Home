@@ -44,7 +44,7 @@ Aucun composant chaud pendant les essais (vérifié au toucher).
 - Lignes `lib_deps` : `adafruit/Adafruit ST7735 and ST7789 Library@1.12.0`, `adafruit/Adafruit GFX Library@1.13.0` (plus seesaw 1.7.9 et SD 1.3.0, déclarées par la bibliothèque, non utilisées).
 - Compatibilité UNO R4 WiFi : oui (compilation et affichage sur la carte).
 - Fichier du dépôt : `firmware/src/components/display.cpp`.
-- Paramètres clés (`config.h`) : variante `INITR_BLACKTAB`, SPI à 4 MHz après l'initialisation, décalage 2 colonne et 1 ligne, rotation 3 (paysage 160x128).
+- Paramètres clés (`config.h`) : variante `INITR_BLACKTAB`, SPI à 4 MHz après l'initialisation, décalage 2 colonnes et 1 ligne, rotation 3 (paysage 160x128).
 - Alternatives écartées : aucune essayée.
 
 ## Résultat
@@ -60,7 +60,7 @@ Aucun composant chaud pendant les essais (vérifié au toucher).
 
 ## Pièges et limites
 
-- Avec le décalage 0 et 0 de `INITR_BLACKTAB`, affichage décalé de 1 pixel à gauche et en haut, pixels multicolores sur la dernière colonne et la dernière ligne → décalage de 2 colonne et 1 ligne (`config.h`).
+- Avec le décalage 0 et 0 de `INITR_BLACKTAB`, affichage décalé de 1 pixel à gauche et en haut, pixels multicolores sur la dernière colonne et la dernière ligne → décalage de 2 colonnes et 1 ligne (`config.h`).
 - `setColRowStart()` est protégée dans la bibliothèque : une classe interne à `display.cpp` la rend accessible.
 - La bibliothèque envoie la séquence d'initialisation à sa vitesse par défaut (32 MHz demandés), sans réglage possible ; la fréquence de `config.h` ne s'applique qu'après.
 - Les diviseurs tirent CS, DC et RES à LOW tant que les broches ne sont pas configurées : CS de l'écran mis à HIGH au début de `setup()`, sinon l'écran reçoit les échanges SPI de la caméra.
