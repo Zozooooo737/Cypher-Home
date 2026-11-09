@@ -40,7 +40,7 @@ constexpr uint32_t DISPLAY_SPI_FREQUENCY_HZ = 4000000;
 // Début de la zone visible dans la mémoire du contrôleur, en colonnes et lignes du portrait (rotation 0).
 // Constat du 2026-11-08 : avec 0 et 0, affichage décalé de 1 pixel à gauche et en haut.
 // En rotation 1 et 3, la bibliothèque applique le décalage de colonne en vertical et celui de ligne en horizontal.
-constexpr int8_t DISPLAY_COL_OFFSET = 1;
+constexpr int8_t DISPLAY_COL_OFFSET = 2;
 constexpr int8_t DISPLAY_ROW_OFFSET = 1;
 
 // Orientation : 0 ou 2 = portrait 128x160 ; 1 ou 3 = paysage 160x128 (changer 1 <-> 3 si l'image est à l'envers).
