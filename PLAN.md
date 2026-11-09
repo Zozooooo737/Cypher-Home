@@ -86,7 +86,7 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Livrable : modules `components/leds`, `buzzer`, `buttons` + fiches (le DS12A a une fiche, sans module) + noms de pattes validés.
   - Validation : chaque actionneur réagit, chaque bouton est lu proprement.
   - Dépend de : P0.2.
-- [ ] **P1.6 Matrice de compatibilité électrique** (ESSENTIEL)
+- [x] **P1.6 Matrice de compatibilité électrique** (ESSENTIEL)
   - Objectif : éviter les erreurs avant le câblage.
   - Tâches : tableau composant / tension d'alimentation / niveau logique / courant (datasheet ; mesure du courant total en P1.7) / bus / broche CS ou adresse I2C.
   - Livrable : `docs/compatibilite.md`.

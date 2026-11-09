@@ -102,7 +102,7 @@ constexpr uint8_t DISPLAY_DC_PIN = 9;
 //   SRCLK -> A3  : horloge de décalage, définie dans le code
 //   OE    -> GND : sorties toujours actives
 //   SRCLR -> 5V  : registre jamais remis à zéro
-//   VCC   -> 5V (à confirmer)
+//   VCC   -> 5V
 //   GND   -> GND
 // Sorties actives à l'état haut ; chaque LED en série avec une résistance de 270 Ohm vers GND
 //   QA        -> non connectée
@@ -145,7 +145,7 @@ constexpr uint8_t BUTTONS_DOWN_PIN = 6;
 // D0 est aussi le RX de Serial1 (UART2) : ne pas utiliser Serial1 (Serial passe par d'autres broches).
 // Broche officielle -> broche de la carte
 //   Signal -> D0 : définie dans le code
-//   V+     -> 5V (à confirmer)
+//   V+     -> 5V
 //   GND    -> GND
 constexpr uint8_t BUZZER_SIGNAL_PIN = 0;
 
