@@ -10,7 +10,7 @@
 | Phase | Sujet                              | Priorité          | État |
 | ----- | ---------------------------------- | ----------------- | ---- |
 | P0    | Cadrage                            | ESSENTIEL         | [x]  |
-| P1    | Test des composants                | ESSENTIEL         | [ ]  |
+| P1    | Test des composants                | ESSENTIEL         | [x]  |
 | P2    | Test réseau précoce                | ESSENTIEL         | [ ]  |
 | P3    | Câblage et schéma KiCad            | ESSENTIEL         | [ ]  |
 | P4    | Code de vérification au démarrage  | ESSENTIEL         | [ ]  |
@@ -92,7 +92,8 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Livrable : `docs/compatibilite.md`.
   - Validation : aucune cellule vide, chaque conflit a une solution.
   - Dépend de : P1.1 à P1.5.
-- [ ] **P1.7 Essai d'ensemble sur breadboard** (ESSENTIEL)
+- [x] **P1.7 Essai d'ensemble sur breadboard** (ESSENTIEL)
+  - Note : courant total non mesuré, reporté à la fin du projet (décision de l'étudiant, 2026-11-08) ; validation fondée sur le fonctionnement simultané sans reset.
   - Objectif : vérifier que tout fonctionne en même temps.
   - Tâches : tous les modules alimentés, bus partagés actifs, lecture simultanée capteurs + écran + caméra ; surveiller resets et valeurs erratiques ; vérifier le courant total ; proposer l'affectation des broches (soumise à D3) ; relire l'index de `pins.h` (aucune broche utilisée deux fois, tout tient sur la carte).
   - Livrable : photo + fiche + `pins.h` complet + table d'affectation des broches proposée.
@@ -252,14 +253,14 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
 ---
 
 ## Risques et plans B
-| Risque                                                    | Plan B                                                                                                                              |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Image trop lourde ou trop lente                           | Réduire résolution ou débit ; envoi par blocs.                                                                                      |
-| Détection de présence trop gourmande sur la carte         | Comparaison d'images sur le serveur (photos périodiques en mode surveillance). [H] à tester.                                        |
-| Surveillance caméra irréaliste                            | Photo sur événement ou à la demande, sans détection ; sinon retirer F7 et envisager un autre capteur de présence (achat à valider). |
-| Partage SPI conflictuel                                   | BME680 en I2C ; un CS par périphérique SPI ; réduire la fréquence SPI.                                                              |
-| Écran 3,3 V abîmé par du 5 V                              | Adaptation de niveaux dès P1.4.                                                                                                     |
-| Chutes de tension ou resets                               | Mesurer le courant en P1.7 ; vérifier le point d'alimentation du MQ-2 ; découpler.                                                  |
-| Wi-Fi iPhone instable ou IP changeante                    | Noter l'IP au démarrage ; reconnexion automatique dans le firmware.                                                                 |
-| Dérive des valeurs MQ-2                                   | Préchauffage ; seuil relatif à la mesure initiale.                                                                                  |
-| Port série USB bloquant ou perte d'octets sans PC branché | Tester l'état du port avant d'envoyer ; image non envoyée si aucun PC. [H] à vérifier sur la R4.                                    |
+| Risque                                                    | Plan B                                                                                                                                                           |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Image trop lourde ou trop lente                           | Réduire résolution ou débit ; envoi par blocs.                                                                                                                   |
+| Détection de présence trop gourmande sur la carte         | Comparaison d'images sur le serveur (photos périodiques en mode surveillance). [H] à tester.                                                                     |
+| Surveillance caméra irréaliste                            | Photo sur événement ou à la demande, sans détection ; sinon retirer F7 et envisager un autre capteur de présence (achat à valider).                              |
+| Partage SPI conflictuel                                   | BME680 en I2C ; un CS par périphérique SPI ; réduire la fréquence SPI.                                                                                           |
+| Écran 3,3 V abîmé par du 5 V                              | Adaptation de niveaux dès P1.4.                                                                                                                                  |
+| Chutes de tension ou resets                               | Courant total mesuré en fin de projet (reporté) ; surveiller les resets dès l'activation du Wi-Fi (P2.1) ; vérifier le point d'alimentation du MQ-2 ; découpler. |
+| Wi-Fi iPhone instable ou IP changeante                    | Noter l'IP au démarrage ; reconnexion automatique dans le firmware.                                                                                              |
+| Dérive des valeurs MQ-2                                   | Préchauffage ; seuil relatif à la mesure initiale.                                                                                                               |
+| Port série USB bloquant ou perte d'octets sans PC branché | Tester l'état du port avant d'envoyer ; image non envoyée si aucun PC. [H] à vérifier sur la R4.                                                                 |
