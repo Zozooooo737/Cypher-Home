@@ -70,7 +70,6 @@
 | Briquet 5 s, code final | 1512 → 9926 | Alerte au 2e échantillon (14 s après le gaz), fin après 45 s environ |
 
 - Code final (second enregistrement) : passage en prêt à 306 s, aucune alerte avant ni en air normal (1475 à 1544).
-- Photo ou mesure : à compléter.
 
 ## Pièges et limites
 
