@@ -30,7 +30,26 @@ Le scope est optionnel : `firmware`, `server`, `dashboard`, `docker`, `docs`, `h
 - Choisir le préfixe correspondant à la nature réelle des changements.
 - Pas de numéro de version dans le message.
 - Ne jamais committer de secrets (`secrets.h`, `.env`) : signale-le avant de proposer le commit si un tel fichier est modifié.
-- Corps du message optionnel (ligne vide puis explication), seulement si la raison du changement n'est pas évidente.
+- Corps du message obligatoire : une ligne vide après le titre, puis un paragraphe de 4 lignes maximum (72 caractères par ligne environ). Il énumère en phrases ce qui a été ajouté, modifié ou retiré (« Ajout de X, Y et Z ; mise à jour de... »), sans puces ni tirets, sans détail ligne à ligne.
+
+## Livraison des commits par Claude Code
+
+Claude Code ne commite jamais ; en fin de tâche, il fournit :
+- un découpage en plusieurs commits thématiques (un sujet par commit : code, correctif, fiches, fichiers de référence), numérotés dans l'ordre où les faire ;
+- pour chaque commit, les commandes `git add` exactes dans un bloc de code ; si un fichier mélange deux sujets, `git add -p <fichier>` avec les réponses à taper (`s` pour scinder, `y` / `n` par bloc) ;
+- le message (titre, ligne vide, paragraphe) dans un bloc de code séparé, prêt à coller ;
+- en fin de liste, un signalement si un fichier de secrets est modifié.
+
+Exemple de message :
+
+```text
+FEAT (firmware) : Ajout des modules LED (74HC595), boutons et buzzer
+
+Ajout des modules leds (74HC595 par shiftOut), buttons (INPUT_PULLUP,
+anti-rebond de 20 ms) et buzzer (tone() non bloquant sur D0), chacun avec
+sa fonction de test. Mise à jour de pins.h et config.h, appel des setup
+dans main.cpp et des trois tests dans self_test_run().
+```
 
 ## Exemples
 

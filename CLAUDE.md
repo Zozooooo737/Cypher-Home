@@ -53,7 +53,7 @@ Travaille dans le dossier concerné par la tâche (hardware, firmware, server, d
 ## Git : seul l'étudiant commite
 **Claude Code ne lance JAMAIS** `git add`, `git commit` (y compris `git commit --amend`), `git push`, `git reset`, `git stash` ni `git rebase`. Seul l'étudiant commite.
 - Autorisé : `git status`, `git diff`, `git log` (lecture seule).
-- À la fin de chaque tâche, Claude Code fournit **uniquement** un message de commit prêt à copier, conforme à `docs/CONVENTION_COMMITS.md`, dans un bloc de code. Il signale tout fichier de secrets modifié (`secrets.h`, `.env`).
+- À la fin de chaque tâche, Claude Code fournit **uniquement** les commits à faire, selon `docs/CONVENTION_COMMITS.md` (section « Livraison des commits par Claude Code ») : commits thématiques numérotés, commandes `git add` exactes, puis titre et paragraphe de 4 lignes maximum, sans puces, dans des blocs de code. Il signale tout fichier de secrets modifié (`secrets.h`, `.env`).
 - Filet de sécurité : règles `deny` dans `.claude/settings.json`. Elles ne remplacent pas cette règle.
 
 ## Règles de travail
