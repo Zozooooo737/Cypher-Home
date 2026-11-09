@@ -68,7 +68,7 @@
 ## À reporter (si applicable)
 
 - [ ] Noms de pattes → `CONTEXTE_TECHNIQUE.md` (boutons, DS12A)
-- [ ] Valeurs des résistances → `CONTEXTE_TECHNIQUE.md` § 3.16
+- [ ] Valeurs des résistances → `CONTEXTE_TECHNIQUE.md` § 3.17
 - [ ] Décision D1 ou D2 → `DECISIONS.md`
 - [ ] Ligne du composant → `docs/compatibilite.md` (P1.6)
 - [ ] Éléments pour le compte rendu (P12.1) : [photo, mesure, schéma]

@@ -79,7 +79,8 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Livrable : module `components/display` + fiche.
   - Validation : affichage correct, aucun composant chaud.
   - Dépend de : P0.2.
-- [ ] **P1.5 LED, buzzer, boutons, interrupteur DS12A** (ESSENTIEL : buzzer et interrupteur ; IMPORTANT : LED et boutons)
+- [x] **P1.5 LED, buzzer, boutons, interrupteur DS12A** (ESSENTIEL : buzzer et interrupteur ; IMPORTANT : LED et boutons)
+  - Note : DS12A : test de continuité et fiche non faits, reportés avant P3.2 (décision de l'étudiant, 2026-11-09).
   - Objectif : valider les entrées/sorties simples.
   - Tâches : calculer les résistances des LED ; buzzer passif avec `tone()` ; boutons en `INPUT_PULLUP` + anti-rebond ; test de continuité des pattes des boutons (4) et du DS12A (3) pour fixer leur nommage dans CONTEXTE_TECHNIQUE.md.
   - Livrable : modules `components/leds`, `buzzer`, `buttons` + fiches (le DS12A a une fiche, sans module) + noms de pattes validés.
@@ -144,7 +145,7 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Tâches : suivre la table de broches validée (D3) ; ajouter résistances, adaptation de niveaux éventuelle, interrupteur.
   - Livrable : `hardware/kicad/cypher-home.kicad_sch` + export PDF.
   - Validation : revue ligne par ligne contre la matrice de compatibilité.
-  - Dépend de : P3.1, D3.
+  - Dépend de : P3.1, D3, D10.
 - [ ] **P3.3 Câblage du prototype** (ESSENTIEL)
   - Tâches : câbler selon le schéma ; liste de contrôle (continuité, polarité, pas de court-circuit) avant mise sous tension ; vérifier que pins.h correspond au câblage réel.
   - Livrable : photo + liste de contrôle.

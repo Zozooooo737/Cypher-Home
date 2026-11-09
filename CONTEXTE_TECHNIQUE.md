@@ -70,7 +70,7 @@ Voir `DECISIONS.md`, sections « Décidé » et « À valider ou à trancher ».
 ### 3.10 Boutons poussoirs
 - Quantité : 5
 - Type : boutons poussoirs classiques, 4 pattes
-- Broches : 4 pattes par bouton (nommage des pattes à définir lors du test de continuité)
+- Broches : 4 pattes par bouton. Noms validés au test de continuité (2026-11-09) : A1 (reliée à la broche de la carte) et B2 (reliée à GND) ; noms des deux autres pattes : à compléter
 
 ### 3.11 Interrupteur général : DS12A
 - Quantité : 1
@@ -106,5 +106,13 @@ Voir `DECISIONS.md`, sections « Décidé » et « À valider ou à trancher ».
 - Connecteur : JST PHR-02
 - Broches : JST OUT
 
-### 3.16 Résistances et câblage
-- Références et valeurs : [À DÉFINIR]
+### 3.16 Registre à décalage : 74HC595
+- Quantité : 1
+- Référence : à noter
+- Datasheet : à noter
+- Broches : VCC, GND, SER, SRCLK, RCLK, SRCLR, OE, QA, QB, QC, QD, QE, QF, QG, QH, QH'
+
+### 3.17 Résistances et câblage
+- LED : 4 × 270 Ω, une en série avec chaque LED (validé le 2026-11-09)
+- Écran ST7735S : diviseurs 1 kΩ (côté carte) / 2 kΩ (vers GND) sur les 5 signaux SCL, SDA, RES, DC et CS
+- Références : à noter
