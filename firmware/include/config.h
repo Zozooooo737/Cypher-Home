@@ -49,3 +49,7 @@ constexpr uint8_t DISPLAY_ROTATION = 3;
 
 // Boutons : durée pendant laquelle une lecture doit rester stable pour être prise en compte (anti-rebond).
 constexpr unsigned long BUTTONS_DEBOUNCE_MS = 20;
+
+// Wi-Fi : délai maximal d'une tentative de connexion et nombre de tentatives.
+constexpr unsigned long WIFI_CONNECT_TIMEOUT_MS = 10000;
+constexpr uint8_t WIFI_CONNECT_ATTEMPTS = 3;
