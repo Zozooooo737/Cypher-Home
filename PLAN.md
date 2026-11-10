@@ -106,7 +106,8 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
 
 ## P2 : Test réseau précoce (dès que P1.1 est faite, en parallèle de P1.2 à P1.5)
 
-- [ ] **P2.1 Wi-Fi via partage de connexion iPhone (2,4 GHz)** (ESSENTIEL)
+- [x] **P2.1 Wi-Fi via partage de connexion iPhone (2,4 GHz)** (ESSENTIEL)
+  - Note : critère atteint le 2026-11-10 (IP 172.20.10.2, reconnexion seule après débranchement de l'USB, pertes et reprises affichées) ; fiche `docs/tests/wifi.md` encore à rédiger.
   - Tâches : connecter la carte ; [H] activer « Maximiser la compatibilité » sur l'iPhone si le réseau n'est pas vu.
   - Livrable : programme + fiche.
   - Validation : la carte obtient une IP et se reconnecte après redémarrage.

@@ -38,6 +38,7 @@
 ### Réseau et serveur
 - Serveur et base hébergés en local sur le PC. Le serveur écoute sur `0.0.0.0` ; dashboard à `http://IP_DU_PC:port`, accessible depuis PC et iPhone. Prévoir le pare-feu Windows et le profil réseau privé.
 - Wi-Fi : partage de connexion de l'iPhone en 2,4 GHz, « Maximiser la compatibilité » activé. L'IP du PC change à chaque session : une configuration unique dans le firmware est acceptée.
+- Wi-Fi de la carte (P2.1) : bibliothèque WiFiS3 fournie par le cœur Renesas 1.6.0 (pas de lib_deps) ; elle parle à l'ESP32-S3 par `Serial2` (UART3, broches internes P501/P502), aucune broche des connecteurs utilisée. Firmware du module Wi-Fi mis à jour de 0.4.1 à 0.6.1 (Arduino IDE 2, Firmware Updater) : avec 0.4.1, les pertes de liaison n'étaient pas toujours vues. SSID et mot de passe dans `secrets.h` (ignoré par Git, modèle `secrets.example.h`). Connexion : 3 tentatives de 10 s au plus (`config.h`), réussie seulement quand le DHCP a donné une IP.
 
 ### Méthode
 - `PLAN.md` fait référence pour l'ordre des étapes (Px.x).
@@ -125,3 +126,4 @@ Légende
 - 2026-11-09 : P1.5 terminée : 4 LED commandées par un 74HC595 (résistances de 270 Ω), 5 boutons et buzzer passif validés sur la carte ; test de continuité des boutons fait (pattes A1 et B2) ; DS12A reporté avant P3.2 (D10) ; tests des trois modules ajoutés à self_test_run().
 - 2026-11-09 : P1.6 terminée : matrice de compatibilité électrique dans docs/compatibilite.md (valeurs des datasheets, sources indiquées, valeurs introuvables à mesurer en P1.7) ; conflits listés avec leur solution ; budget du 5 V à confirmer par la mesure du courant total en P1.7.
 - 2026-11-10 : P1.7 terminée : tous les modules câblés ensemble, 10 passes de self_test_run() (4 min 45 s) sans reset, images valides avec l'écran actif (SPI partagé), BME680 et caméra lus dans la même passe (I2C partagé), mesures affichées à l'écran ; courant total non mesuré ; table d'affectation des broches proposée pour D3 (docs/tests/essai_ensemble.md).
+- 2026-11-10 : P2.1 terminée : la carte se connecte au partage de connexion iPhone (IP 172.20.10.2, 1 tentative), se reconnecte seule après débranchement de l'USB (754 ms) ; avec le firmware Wi-Fi 0.6.1, pertes et reprises de liaison affichées (reprises en 182 ms et 3708 ms) ; fiche à rédiger.
