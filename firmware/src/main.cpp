@@ -11,7 +11,7 @@
 #include "components/buzzer.h"
 #include "components/wifi.h"
 
-constexpr unsigned long WIFI_WATCH_PERIOD_MS = 5000;
+constexpr unsigned long SELF_TEST_PAUSE_MS = 5000;
 
 void setup() {
     Serial.begin(SERIAL_BAUD);
@@ -33,31 +33,6 @@ void setup() {
 }
 
 void loop() {
-    static bool s_tested = false;
-    static bool s_up = false;
-    static unsigned long s_lost_ms = 0;
-
-    if (!s_tested) {
-        Serial.println("----- TEST WIFI -----");
-        s_up = wifi_test();
-        Serial.println();
-        s_tested = true;
-        s_lost_ms = millis();
-    }
-
-    delay(WIFI_WATCH_PERIOD_MS);
-
-    if (wifi_connected()) {
-        s_up = true;
-        return;
-    }
-    if (s_up) {
-        self_test_print("wifi", "liaison", "perdue");
-        s_lost_ms = millis();
-        s_up = false;
-    }
-    if (wifi_ensure_connected()) {
-        self_test_print("wifi", "reprise apres", millis() - s_lost_ms, "ms");
-        s_up = true;
-    }
+    self_test_run();
+    delay(SELF_TEST_PAUSE_MS);
 }
