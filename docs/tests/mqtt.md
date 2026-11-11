@@ -409,9 +409,90 @@ Limite [H] : si la connexion réussit mais que l'envoi du message échoue, le co
 
 ### Résultat (2026-11-11)
 
-- Scénario déroulé ; selon mon compte rendu, tous les points se sont passés comme attendu : connexions sans mot de passe et avec un mauvais mot de passe refusées, refus visible dans les journaux, retour à OK avec le bon mot de passe.
-- Carte, bons identifiants : 4 lignes `[mqtt]`, connexion en 74 ms, messages `bonjour de la carte, 19 s` puis `40 s`.
-- Carte, mauvais mot de passe : `[mqtt] KO` sur une seule ligne (avant l'ajout de la ligne du code d'erreur).
-- Non relevé : sorties exactes des trois essais `mosquitto_pub` et des journaux, code d'erreur renvoyé (le code 5 reste une hypothèse [H]).
+- Abonné (`cypherhome-server`) : a reçu `avec mot de passe`, puis `bonjour de la carte, 19 s`, `40 s` et `20 s`. Il n'a reçu ni `sans mot de passe` ni `mauvais mot de passe`.
+- Journaux : `u'cypherhome-server'` pour l'abonné et le bon `mosquitto_pub` ; deux fois `disconnected, not authorised` pour les essais sans mot de passe et avec un mauvais ; la carte apparaît `from 172.18.0.1 … as cypherhome-board (p2, c1, k60, u'cypherhome-board')`.
+- Carte, bons identifiants : 4 lignes `[mqtt]`, connexion en 74 ms.
+- Carte, mauvais mot de passe : `[mqtt] KO` (avant l'ajout de la ligne du code d'erreur).
+- Non relevé : la ligne des journaux du refus de la carte et le code d'erreur renvoyé (le code 5 reste une hypothèse [H]).
+- Défaut constaté : le mot de passe de `cypherhome-server` est très court et a été tapé en clair (`-P`), donc il est resté dans l'historique de PowerShell. À changer (voir étape 5).
 
 > **Ce qui reste à faire.** Les secrets existent maintenant à trois endroits : `secrets.h`, `passwd`, et bientôt le `.env` du serveur. À l'étape 5, on vérifie qu'aucun n'entre dans Git, ni aujourd'hui ni dans l'historique, et on prépare l'endroit où le serveur Python lira ses identifiants.
+
+## Étape 5 : ranger les secrets hors de Git
+
+### L'idée
+
+Un **secret** est une information qui donne un accès : un mot de passe Wi-Fi, un mot de passe MQTT, une empreinte de mot de passe. Il en existe maintenant à trois endroits : `secrets.h` (la carte), `passwd` (le broker) et, plus tard, `server/.env` (le serveur). Aucun ne doit entrer dans **Git**, l'outil qui garde l'historique du dépôt.
+
+*Dans l'immeuble, Git est le registre du gardien : chaque page est datée et ne s'arrache pas. Rayer une ligne plus tard ne l'efface pas des pages précédentes.*
+
+C'est le piège : un fichier supprimé dans un commit récent reste lisible dans les commits anciens. Il faut donc vérifier le dépôt **et** son historique.
+
+### Les outils
+
+- **`.gitignore`** : la liste des fichiers que Git doit ignorer. Il ne protège que les fichiers **jamais commités** : un fichier déjà suivi reste suivi (il faudrait `git rm --cached`).
+- **`git check-ignore -v <fichier>`** : dit si un fichier est ignoré, et par quelle règle.
+- **`.env`** : un fichier texte de lignes `NOM=valeur`, lu au démarrage par un programme. C'est la convention habituelle pour les secrets d'un serveur Python. Son modèle **`.env.example`** est versionné, avec des valeurs factices : il montre le format, comme `secrets.example.h` pour la carte.
+
+### Ce que couvre le `.gitignore`
+
+| Règle | Fichier protégé | Ce qui casse si on l'enlève |
+|---|---|---|
+| `**/secrets.h` | `firmware/include/secrets.h` | Le mot de passe Wi-Fi, celui de la carte et l'IP du PC partent au prochain `git add`. |
+| `**/passwd` | `docker/mosquitto/config/passwd` | Les empreintes partent. Elles ne sont pas les mots de passe, mais un mot de passe court se retrouve par essais. |
+| `*.env` (et `.env`) | `server/.env`, et tout `.env` du dépôt | Le mot de passe du serveur part. |
+
+`*.env` ne touche pas `.env.example` : le nom ne finit pas par `.env`. Le modèle reste donc versionné, et c'est voulu.
+
+### Vérifications faites (2026-11-11)
+
+Aucune valeur n'a été affichée : seulement des noms de fichiers et des comptes.
+
+| Vérification | Résultat |
+|---|---|
+| `git check-ignore -v` sur `secrets.h`, `passwd`, `server/.env`, `docker/.env`, `.env` | les cinq sont ignorés, chacun par la règle attendue |
+| `git check-ignore` sur `secrets.example.h` et `server/.env.example` | suivis, comme voulu |
+| Fichiers `secrets.h`, `passwd`, `.env`, `.pem`, `.key` suivis par Git | aucun |
+| Les mêmes noms dans **tout** l'historique (toutes branches) | aucun |
+| Empreintes Mosquitto (`$7$…$`) dans l'historique | un seul commit, dans `mqtt.md` : c'est le modèle `$7$101$<sel>$<empreinte>` de l'étape 4, pas une vraie empreinte |
+| Lignes `PASSWORD = "…"` hors fichiers `*example*`, dans tous les commits | aucune |
+
+Ce que ces vérifications **ne prouvent pas** : elles cherchent des noms et des formes connus. Un mot de passe recopié ailleurs (dans un `.md`, un commentaire) ne serait pas trouvé. Pour le chercher, il faut sa valeur ; c'est à moi de le faire (voir le scénario).
+
+### Si un secret fuit
+
+1. **D'abord, changer le secret** (mot de passe Wi-Fi, `mosquitto_passwd`). Dès qu'il a été poussé sur GitHub, il faut le considérer comme lu : des robots parcourent les dépôts publics en quelques minutes, et des copies peuvent exister ailleurs.
+2. **Ensuite seulement, nettoyer l'historique** (outil `git filter-repo`, puis envoi forcé). Cela réécrit tous les commits suivants : c'est lourd, et cela ne rend pas secret ce qui a déjà été lu.
+
+L'ordre compte : nettoyer sans changer le mot de passe laisse la porte ouverte.
+
+### Où le serveur lira ses identifiants
+
+`server/.env.example` (versionné) donne le format ; `server/.env` (ignoré) contiendra les vraies valeurs, sur mon PC seulement. Le serveur Python n'existe pas encore : la façon de lire ce fichier sera choisie quand il sera écrit.
+
+| Ligne | Ce qu'elle dit | Ce qui casse si on l'enlève |
+|---|---|---|
+| `MQTT_HOST=127.0.0.1` | Le broker tourne sur le même PC que le serveur. | Le serveur ne sait pas où se connecter. |
+| `MQTT_PORT=1883` | La porte du broker. | Idem. |
+| `MQTT_USERNAME=cypherhome-server` | L'utilisateur créé pour le serveur à l'étape 4 (pas celui de la carte). | Refus `not authorised`. |
+| `MQTT_PASSWORD=…` | Son mot de passe (valeur factice dans le modèle). | Idem. |
+
+Pour le serveur, `127.0.0.1` suffit : il tourne sur le PC, le port publié par Docker y répond (vu à l'étape 1). Seule la carte a besoin de l'IP du Wi-Fi.
+
+### Scénario de test
+
+1. **Changer le mot de passe de `cypherhome-server`** (trop court, et visible dans l'historique de PowerShell) : broker arrêté, dans `docker` : `docker compose run --rm mosquitto mosquitto_passwd /mosquitto/config/passwd cypherhome-server` (**sans `-c`** : on remplace la ligne de cet utilisateur, la carte garde la sienne).
+2. **Effacer l'ancien mot de passe de l'historique de PowerShell** : ouvrir le fichier donné par `(Get-PSReadLineOption).HistorySavePath` et supprimer les lignes `mosquitto_sub` / `mosquitto_pub` qui contiennent `-P`.
+3. **Créer `server/.env`** : copier `server/.env.example` en `server/.env`, mettre le nouveau mot de passe. Puis, depuis la racine : `git status --short` ne doit **pas** lister `server/.env`, mais doit lister `server/.env.example`.
+4. **Chercher mes vraies valeurs dans l'historique**, sans les écrire dans une commande :
+   `$v = Read-Host "Valeur"; (git log --all -S $v --oneline | Measure-Object).Count`
+   À faire pour le mot de passe Wi-Fi, celui de la carte et celui du serveur. Attendu : `0`. La valeur s'affiche pendant la saisie, mais l'historique ne garde que la commande.
+5. **Contrôle** : broker démarré, `mosquitto_sub` avec le nouveau mot de passe reçoit le message de la carte ; l'ancien est refusé (`not authorised`).
+
+| Test | Prouve | Ne prouve pas |
+|---|---|---|
+| 1 et 5 | Le mot de passe du serveur est changé, celui de la carte n'a pas bougé. | N/A |
+| 3 | `server/.env` est ignoré, son modèle est suivi. | Que le serveur saura le lire (il n'existe pas). |
+| 4 | Mes valeurs actuelles ne sont dans aucun commit. | Qu'elles ne sont nulle part ailleurs (copie, capture d'écran, conversation). |
+
+> **Ce qui reste à faire.** Tous les morceaux existent : carte, Wi-Fi, pare-feu, Docker, broker avec mots de passe, secrets hors Git. L'étape 6 vérifie les deux critères de P2.2 sur les sorties relevées, et retrace le chemin complet d'un message.
