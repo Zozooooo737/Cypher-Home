@@ -7,19 +7,13 @@
 #include "secrets.h"
 #include "self_test.h"
 
-// Sujet réservé au test
 constexpr char TEST_TOPIC[] = "cypherhome/test";
 
-// Connexion TCP (WiFiS3), et client MQTT qui parle à travers elle
 static WiFiClient s_wifi_client;
 static MqttClient s_mqtt_client(s_wifi_client);
 
-// Durée de la dernière connexion réussie (TCP + CONNECT/CONNACK)
 static unsigned long s_connect_ms = 0;
 
-// connect() ouvre une connexion TCP neuve, envoie CONNECT (avec utilisateur et mot de passe)
-// et attend CONNACK au plus MQTT_CONNECT_TIMEOUT_MS ; il ferme d'abord l'éventuelle connexion précédente.
-// Identifiants refusés : CONNACK non nul, connect() renvoie 0 (code dans connectError()).
 bool mqtt_setup() {
     unsigned long start_ms = millis();
     s_mqtt_client.setId(MQTT_CLIENT_ID);
@@ -32,14 +26,11 @@ bool mqtt_setup() {
     return true;
 }
 
-// Reconnexion automatique : poll() lit ce que le broker a envoyé et entretient le keep alive ;
-// si la connexion est perdue, on la rouvre.
 static bool mqtt_ensure_connected() {
     s_mqtt_client.poll();
     return s_mqtt_client.connected() || mqtt_setup();
 }
 
-// Message = en-tête PUBLISH (sujet, QoS 0 par défaut) + contenu, envoyé par endMessage()
 bool mqtt_publish(const char *topic, const char *payload) {
     if (!mqtt_ensure_connected()) {
         return false;
@@ -49,8 +40,6 @@ bool mqtt_publish(const char *topic, const char *payload) {
     return s_mqtt_client.endMessage();
 }
 
-// Publie un message daté (secondes depuis le démarrage) pour reconnaître chaque passe.
-// Échec : ligne KO, puis le code de la dernière connexion (connectError(), peut être négatif : affiché en texte).
 bool mqtt_test() {
     char payload[40];
     snprintf(payload, sizeof(payload), "bonjour de la carte, %lu s", millis() / 1000);
