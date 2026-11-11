@@ -22,5 +22,6 @@ docker/**/data/
 .obsidian/
 .claude/settings.local.json
 
-# Firmware : images de test
+# Images de test (firmware et serveur)
 firmware/output/
+server/output/
