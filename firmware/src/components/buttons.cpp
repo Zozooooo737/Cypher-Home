@@ -5,7 +5,7 @@
 #include "pins.h"
 #include "self_test.h"
 
-constexpr unsigned long BUTTONS_TEST_DURATION_MS = 15000;
+constexpr unsigned long BUTTONS_TEST_DURATION_MS = 7000;
 
 constexpr uint8_t BUTTONS_PINS[BUTTON_COUNT] = {
     BUTTONS_CENTER_PIN, BUTTONS_RIGHT_PIN, BUTTONS_LEFT_PIN, BUTTONS_UP_PIN, BUTTONS_DOWN_PIN};

@@ -56,3 +56,9 @@ constexpr uint8_t WIFI_CONNECT_ATTEMPTS = 3;
 
 // MQTT : port du broker sur le PC (1883 = port standard de MQTT sans chiffrement).
 constexpr uint16_t MQTT_BROKER_PORT = 1883;
+
+// MQTT : identifiant de la carte auprès du broker (deux clients de même identifiant se déconnectent l'un l'autre).
+constexpr char MQTT_CLIENT_ID[] = "cypherhome-board";
+
+// MQTT : délai maximal d'attente de la réponse du broker (CONNACK) à la connexion.
+constexpr unsigned long MQTT_CONNECT_TIMEOUT_MS = 5000;

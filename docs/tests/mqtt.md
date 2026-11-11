@@ -235,4 +235,86 @@ PC et carte sur le partage de connexion de l'iPhone. Les commandes marquées **(
 | 8. Broker arrêté | Le OK de l'étape 7 venait bien de notre broker. | N/A |
 | 9. Règle désactivée | C'est **notre** règle qui ouvre la porte (sauf règle Docker trouvée au point 3). | N/A |
 
+### Résultat (2026-11-11)
+
+- Carte : `[mqtt] broker ... 172.20.10.3:1883`, `[mqtt] connexion tcp ... 32 ms`.
+- `docker compose down` : `[mqtt] KO` ; `docker compose up -d` : retour à OK (26 ms).
+- Règle désactivée : `[mqtt] KO` ; règle réactivée : retour à OK (26 ms).
+- Conséquence : aucune règle propre à Docker ne laissait passer le port 1883 à la place de la nôtre (sinon la carte serait restée OK, règle désactivée).
+- Non relevé : sorties des points 1 à 6 et durée des deux KO. L'écart « rapide / lent » entre les deux échecs reste donc une hypothèse.
+
 > **Ce qui reste à faire.** La carte frappe à la porte, mais ne dit rien. À l'étape 3, elle parle MQTT : elle se présente au broker (CONNECT), attend sa réponse (CONNACK) et publie un message sur `cypherhome/test`.
+
+## Étape 3 : la carte parle MQTT et publie un message
+
+### Ce qu'on construit
+
+La carte ne se contente plus de frapper : elle se présente au gardien, attend sa réponse, puis dépose une lettre sur `cypherhome/test`. Un abonné sur le PC la reçoit. Toujours sans mot de passe (PROVISOIRE, jusqu'à l'étape 4).
+
+### Les notions de l'étape
+
+- **CONNECT** : le premier message MQTT, envoyé par le client juste après l'ouverture de la connexion TCP. Il contient l'**identifiant client** (`cypherhome-board`), le délai de keep alive et, plus tard, l'utilisateur et le mot de passe. *Se présenter au gardien.*
+- **CONNACK** : la réponse du broker. Elle contient un code : 0 = accepté, sinon la raison du refus (détaillée à l'étape 4). *Le gardien dit « entrez » ou « non ».*
+- **Identifiant client** : le nom du client pour le broker. Il doit être unique : si un second client se présente avec le même nom, le broker coupe le premier.
+- **PUBLISH** : le message qui transporte une lettre : un sujet et un contenu. En **QoS 0**, il part une fois, sans accusé de réception : la carte ne sait pas si un abonné l'a reçu.
+- **Keep alive** : la carte promet de donner signe de vie au moins toutes les 60 s (valeur par défaut de la bibliothèque). Au-delà d'une fois et demie ce délai sans nouvelles, le broker la considère comme partie.
+
+### Bibliothèque : ArduinoMqttClient 0.1.8
+
+| Critère | ArduinoMqttClient 0.1.8 (retenue) | PubSubClient 2.8 |
+|---|---|---|
+| Origine, dernière version | Arduino, 2024 | un auteur, 2020 |
+| Plateformes déclarées | toutes (`*`) | AVR et ESP seulement (pas la R4) |
+| QoS en publication | 0, 1, 2 | 0 seulement |
+| Taille d'un message | envoyé au fil de l'eau, sans tampon fixe | tampon de 256 octets par défaut |
+| Testament (LWT) | oui | oui |
+| Code d'erreur de connexion | oui (`connectError()`) | oui (`state()`) |
+
+Elle se branche sur le `WiFiClient` de WiFiS3 : le client MQTT parle **à travers** la connexion TCP de l'étape 2. Ligne ajoutée à `platformio.ini` : `arduino-libraries/ArduinoMqttClient@0.1.8` (version figée).
+
+### Ce qui change
+
+| Fichier, ligne                                                 | Ce qu'elle fait                                                                                                                                                                                         | Ce qui casse si on l'enlève                                                                       |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `config.h` : `MQTT_CLIENT_ID = "cypherhome-board"`             | Nom de la carte auprès du broker.                                                                                                                                                                       | La bibliothèque invente un nom (`Arduino-…`) qui change à chaque démarrage : journaux illisibles. |
+| `config.h` : `MQTT_CONNECT_TIMEOUT_MS = 5000`                  | Attente maximale de CONNACK.                                                                                                                                                                            | La bibliothèque attend 30 s par défaut : une passe peut rester bloquée 30 s.                      |
+| `mqtt.cpp` : `MqttClient s_mqtt_client(s_wifi_client)`         | Crée le client MQTT au-dessus de la connexion TCP.                                                                                                                                                      | Plus de MQTT.                                                                                     |
+| `mqtt_setup()` : `setId()`, `setConnectionTimeout()`           | Règle l'identifiant et le délai avant chaque connexion.                                                                                                                                                 | Voir les deux lignes de `config.h`.                                                               |
+| `mqtt_setup()` : `connect(IP, port)`                           | Ouvre une connexion TCP neuve (et ferme l'ancienne), envoie CONNECT, attend CONNACK. Le délai de 5 s ne couvre que CONNACK ; l'ouverture TCP garde le délai du module Wi-Fi (jusqu'à 10 s environ [H]). | Plus de connexion.                                                                                |
+| `mqtt_ensure_connected()` : `poll()`                           | Lit ce que le broker a envoyé, entretient le keep alive, détecte une connexion fermée.                                                                                                                  | La perte de connexion n'est pas vue ; le keep alive n'est plus entretenu.                         |
+| `mqtt_ensure_connected()` : `connected() \|\| mqtt_setup()`    | **Reconnexion automatique** : si la connexion est perdue, on la rouvre.                                                                                                                                 | Après un arrêt du broker, la carte resterait KO pour toujours.                                    |
+| `mqtt_publish()` : `beginMessage()`, `print()`, `endMessage()` | Construit le PUBLISH (sujet, QoS 0) et l'envoie.                                                                                                                                                        | Plus de message.                                                                                  |
+| `mqtt_test()` : `TEST_TOPIC`, contenu daté                     | Publie `bonjour de la carte, NN s` : le nombre de se condes distingue chaque passe.                                                                                                                     | Sans date, impossible de savoir si un message est neuf.                                           |
+
+`TEST_TOPIC` reste une constante locale de `mqtt.cpp` : ce sujet n'existe que pour le test.
+
+### Scénario de test
+
+PC et carte sur le partage de connexion. Profil privé, règle de pare-feu active, `MQTT_BROKER_IP` à jour dans `secrets.h` (l'IP du PC peut avoir changé).
+
+1. **Broker** (dans `docker`) : `docker compose up -d`.
+2. **Abonné**, terminal A : `docker compose exec mosquitto mosquitto_sub -t cypherhome/test -v`.
+3. **Carte** : téléverser (`pio run -d firmware -t upload`), lancer le moniteur série. Attendu :
+   ```
+   ----- TEST MQTT -----
+   [mqtt] broker .................. 172.20.10.x:1883
+   [mqtt] connexion ............... NN ms
+   [mqtt] sujet ................... cypherhome/test
+   [mqtt] message ................. bonjour de la carte, NN s
+   ```
+   Et dans le terminal A, à chaque passe : `cypherhome/test bonjour de la carte, NN s`.
+4. **Journaux** : `docker compose logs mosquitto`. Attendu : `New client connected from 172.18.0.1:… as cypherhome-board`.
+5. **KO, broker arrêté** : `docker compose down`. Attendu : `[mqtt] KO`, sur une seule ligne. **Durée de blocage** : comparer l'écart entre deux lignes `=== Self-test : passe N, X s depuis le demarrage ===` pendant le KO et en temps normal ; la différence est le temps perdu dans le test MQTT.
+6. **Retour** : `docker compose up -d`, puis relancer l'abonné (il a été coupé avec le conteneur). Attendu : OK à la passe suivante, avec une nouvelle durée de connexion (reconnexion automatique), et le message de nouveau reçu dans A.
+7. **Fin** : `docker compose down`.
+
+### Ce que ces tests prouvent, et ce qu'ils ne prouvent pas
+
+| Test | Prouve | Ne prouve pas |
+|---|---|---|
+| 3. Message reçu dans A | La carte parle MQTT ; le broker accepte sa connexion et redistribue son message. | Qu'un programme Windows hors du conteneur le reçoit (l'abonné tourne dans le conteneur ; ce sera le serveur Python, P5.2). Qu'aucun message ne se perd : en QoS 0, la carte ne le saurait pas. |
+| 4. Journaux | La carte est identifiée par `cypherhome-board`. | N/A |
+| 5. Broker arrêté | Un échec donne une seule ligne ; durée de blocage mesurée. | Le cas « broker qui ne répond plus sans fermer la connexion » (non testé). |
+| 6. Retour | La reconnexion automatique fonctionne. | Sa tenue sur une longue durée. |
+
+> **Ce qui reste à faire.** N'importe qui sur le Wi-Fi peut encore lire et publier, y compris une fausse commande. À l'étape 4, le broker exige un utilisateur et un mot de passe, et la carte présente les siens dans CONNECT.
