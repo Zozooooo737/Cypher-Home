@@ -1,0 +1,19 @@
+# Broker MQTT Mosquitto de Cypher Home (P2.2).
+# Depuis ce dossier : « docker compose up -d » pour démarrer, « docker compose down » pour arrêter.
+
+# Nom du projet : le conteneur s'appelle cypherhome-mosquitto-1 (sinon : nom du dossier, « docker »).
+name: cypherhome
+
+services:
+  # Mosquitto, version figée : le même broker à chaque téléchargement.
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+
+    # Port du PC -> port du conteneur. « 127.0.0.1: » : seul le PC peut joindre le broker.
+    # La restriction se fait ici et non dans mosquitto.conf : dans le conteneur, 127.0.0.1 est le conteneur lui-même.
+    ports:
+      - "127.0.0.1:1883:1883"
+
+    # Dossier du dépôt monté là où Mosquitto lit sa configuration (/mosquitto/config/mosquitto.conf).
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
