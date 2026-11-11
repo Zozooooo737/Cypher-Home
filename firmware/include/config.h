@@ -53,3 +53,6 @@ constexpr unsigned long BUTTONS_DEBOUNCE_MS = 20;
 // Wi-Fi : délai maximal d'une tentative de connexion et nombre de tentatives.
 constexpr unsigned long WIFI_CONNECT_TIMEOUT_MS = 10000;
 constexpr uint8_t WIFI_CONNECT_ATTEMPTS = 3;
+
+// MQTT : port du broker sur le PC (1883 = port standard de MQTT sans chiffrement).
+constexpr uint16_t MQTT_BROKER_PORT = 1883;

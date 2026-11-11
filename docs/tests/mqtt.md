@@ -129,7 +129,7 @@ Docker Desktop doit afficher « Engine running ». Les commandes se tapent dans 
 1. **Moteur** : `docker info --format "{{.ServerVersion}}"` affiche un numéro de version. L'erreur `failed to connect to the docker API` veut dire que le moteur est arrêté.
 2. **Démarrer** : `docker compose up -d`. `-d` lance en arrière-plan et rend la main. La première fois, Docker télécharge l'image (quelques Mo).
 3. **État** : `docker compose ps`. Attendu : statut `Up`, ports `127.0.0.1:1883->1883/tcp`.
-4. **Journaux** : `docker compose logs mosquitto`. Attendu : `Config loaded from /mosquitto/config/mosquitto.conf.` puis `mosquitto version 2.0.22 running`. Le nombre en début de ligne est l'heure, en secondes Unix. Si on lit `Starting in local ounly mode`, notre fichier n'a pas été lu.
+4. **Journaux** : `docker compose logs mosquitto`. Attendu : `Config loaded from /mosquitto/config/mosquitto.conf.` puis `mosquitto version 2.0.22 running`. Le nombre en début de ligne est l'heure, en secondes Unix. Si on lit `Starting in local only mode`, notre fichier n'a pas été lu.
 5. **Message de test**, deux terminaux, tous deux dans `docker` :
    - terminal A : `docker compose exec mosquitto mosquitto_sub -t cypherhome/test -v` (il attend) ;
    - terminal B : `docker compose exec mosquitto mosquitto_pub -t cypherhome/test -m "bonjour"`.
@@ -149,4 +149,90 @@ Docker Desktop doit afficher « Engine running ». Les commandes se tapent dans 
 | 7. Adresse d'écoute | La porte n'existe que sur 127.0.0.1 : rien ne peut entrer depuis le Wi-Fi. | Le rôle du pare-feu (pas encore concerné). |
 | 8. Arrêt | C'est bien notre conteneur qui ouvrait la porte ; elle se referme à l'arrêt. | N/A |
 
+### Résultat (2026-11-11)
+
+- Journaux : `Config loaded from /mosquitto/config/mosquitto.conf.`, `mosquitto version 2.0.22 running`.
+- `mosquitto_sub` a reçu `cypherhome/test bonjour` et `cypherhome/test ca va ?`. Les clients venaient de `::1` : l'intérieur du conteneur.
+- `Test-NetConnection 127.0.0.1 -Port 1883` : `True`. Au même moment, les journaux montrent `New connection from 172.18.0.1` puis `Client <unknown> closed its connection` : la connexion du PC a bien traversé le relais de Docker jusqu'à Mosquitto. Elle arrive depuis l'adresse de Docker (`172.18.0.1`), pas depuis celle du PC.
+- `Get-NetTCPConnection` : une seule adresse d'écoute, `127.0.0.1`.
+- Après `docker compose down` : `TcpTestSucceeded : False`.
+- Le message `What's next: Debug this Compose error with Gordon` après Ctrl+C dans le terminal A est une publicité de Docker Desktop : Ctrl+C termine `mosquitto_sub` avec un code d'erreur, ce n'est pas une erreur de configuration.
+
 > **Ce qui reste à faire.** Le broker n'est joignable que depuis le PC. Or la carte est un autre appareil, sur le Wi-Fi de l'iPhone. À l'étape 2, on ouvre la porte sur le Wi-Fi (port Docker, pare-feu Windows), et la carte vérifie qu'elle l'atteint.
+
+## Étape 2 : la porte s'ouvre sur le Wi-Fi, et la carte l'atteint
+
+### Ce qu'on construit
+
+La carte est un autre appareil, sur le Wi-Fi de l'iPhone. Elle doit atteindre la porte 1883 du PC. À cette étape, elle frappe seulement à la porte : elle ouvre une connexion, sans parler MQTT.
+
+*La porte du gardien donne maintenant sur la rue. À l'entrée de l'immeuble, un vigile (le pare-feu) décide qui passe.*
+
+### Les notions de l'étape
+
+- **Adresse IP** : le numéro d'un appareil sur un réseau. *L'adresse de l'immeuble.* Sur le partage de connexion, l'iPhone est `172.20.10.1` et il distribue aux autres appareils des adresses `172.20.10.x` (c'est le **DHCP**). Elles peuvent changer à chaque session : l'IP du PC est donc dans `secrets.h`, à mettre à jour.
+- **Port** : le numéro de porte d'un programme sur cet appareil. On joint un programme avec une IP **et** un port : `172.20.10.x:1883`.
+- **TCP** : la façon d'ouvrir une conversation sur le réseau. Avant d'envoyer quoi que ce soit, le client frappe (« je peux entrer ? »), le serveur ouvre (« oui »), le client confirme. Ensuite, TCP garantit que les données arrivent entières et dans l'ordre. MQTT circule dans une connexion TCP. *Frapper et attendre qu'on ouvre avant de parler.*
+- Deux façons d'échouer, qu'on va observer :
+  - **personne derrière la porte** (broker arrêté) : le PC répond aussitôt « refusé » ; l'échec est rapide [H] ;
+  - **le vigile refuse** (pare-feu) : il ne répond rien ; la carte attend jusqu'à son délai maximal, plus longtemps [H].
+- **Pare-feu Windows** : il filtre les connexions qui **entrent** dans le PC. Par défaut, il les bloque, sauf si une **règle** les autorise. Les connexions qui sortent du PC ne sont pas concernées.
+- **Profil réseau** : Windows classe chaque réseau en **privé** (de confiance : maison) ou **public** (café, gare). Une règle peut ne valoir que pour un profil. La nôtre ne vaut que pour **privé** : sur un Wi-Fi public, la porte reste fermée. Le partage de connexion de l'iPhone doit donc être marqué privé (Windows le retient pour ce réseau seulement).
+
+### Danger : un broker ouvert, sans mot de passe
+
+Jusqu'à l'étape 4, **n'importe quel appareil du même Wi-Fi peut lire et publier** sur le broker. C'est PROVISOIRE. Trois garde-fous : le partage de connexion n'accueille que mes appareils (il a un mot de passe Wi-Fi) ; les étapes 2 à 4 se font dans la même session ; le broker est arrêté (`docker compose down`) dès que je ne teste plus.
+
+### Ce qui change
+
+| Fichier, ligne | Ce qu'elle fait | Ce qui casse si on l'enlève |
+|---|---|---|
+| `docker-compose.yml` : `"1883:1883"` | Ouvre la porte 1883 sur **toutes** les adresses du PC, dont le Wi-Fi. | Avec `127.0.0.1:` devant (étape 1), la carte reçoit `KO` : la porte n'existe pas côté Wi-Fi. |
+| `config.h` : `MQTT_BROKER_PORT = 1883` | Le numéro de porte du broker. | Ne compile plus : `mqtt.cpp` l'utilise. |
+| `secrets.h` : `MQTT_BROKER_IP` | L'IP du PC sur le Wi-Fi de l'iPhone. Dans `secrets.h` car propre à mon réseau, hors Git. | Ne compile plus. Une IP périmée (autre session) donne `KO`. |
+| `mqtt.cpp` : `static WiFiClient s_client` | L'objet qui tient une connexion TCP, via le module Wi-Fi de la carte. | Plus de connexion possible. |
+| `mqtt_setup()` : `s_client.stop()` | Ferme la connexion précédente avant d'en ouvrir une neuve. | Une connexion restée ouverte passerait encore le pare-feu après la désactivation de la règle : le test dirait OK à tort. |
+| `mqtt_setup()` : `s_client.connect(IP, port)` | Frappe à la porte et attend la réponse. | C'est le test lui-même. |
+| `mqtt_test()` : `millis()` avant et après | Chronomètre la connexion. | Plus de durée affichée. |
+| `mqtt_test()` : `Serial.println("[mqtt] KO")` | Échec = une seule ligne (convention des tests). | Un échec passerait inaperçu. |
+| `main.cpp` : `mqtt_setup()` après `wifi_setup()` | Connexion au démarrage, une fois le Wi-Fi prêt. | Rien de visible à cette étape ; elle servira à l'étape 3. |
+| `self_test.cpp` : bannière `MQTT` puis `mqtt_test()` | Le test passe à chaque tour de `self_test_run()`, après le Wi-Fi. | Plus de test MQTT dans la sortie série. |
+
+Côté Mosquitto, la carte n'apparaîtra pas avec sa propre IP : comme à l'étape 1, les connexions arrivent depuis l'adresse de Docker (`172.18.0.1`) [H].
+
+### Scénario de test
+
+PC et carte sur le partage de connexion de l'iPhone. Les commandes marquées **(admin)** se tapent dans un PowerShell ouvert en administrateur (clic droit, « Exécuter en tant qu'administrateur »).
+
+1. **IP du PC** : `Get-NetIPAddress -InterfaceAlias WiFi -AddressFamily IPv4`. Attendu : `172.20.10.x`. La recopier dans `MQTT_BROKER_IP` de `secrets.h`.
+2. **Profil** : `Get-NetConnectionProfile`. Si le réseau de l'iPhone est `Public` : **(admin)** `Set-NetConnectionProfile -InterfaceAlias WiFi -NetworkCategory Private`.
+3. **Règles déjà créées pour Docker (admin)** :
+   `Get-NetFirewallApplicationFilter | Where-Object Program -like "*docker*" | Get-NetFirewallRule | Where-Object Direction -eq Inbound | Format-Table DisplayName, Enabled, Action, Profile`
+   Une règle `Allow` laisserait passer la carte même sans notre règle (le test du pare-feu ne montrerait rien) ; une règle `Block` l'emporte sur toute autorisation (la carte serait toujours KO). Si une fenêtre du pare-feu apparaît pour Docker, ne pas cliquer au hasard : « Autoriser » ouvre tous les ports de Docker, « Annuler » crée une règle de blocage [H].
+4. **Règle pour le port 1883 (admin)** :
+   `New-NetFirewallRule -DisplayName "Cypher Home - MQTT 1883" -Direction Inbound -Protocol TCP -LocalPort 1883 -Action Allow -Profile Private`
+   (`-Direction Inbound` : connexions entrantes ; `-Protocol TCP -LocalPort 1883` : seulement cette porte ; `-Action Allow` : laisser passer ; `-Profile Private` : seulement sur un réseau privé.)
+5. **Broker** (dans `docker`) : `docker compose up -d`, puis `docker compose ps` (attendu : `0.0.0.0:1883->1883/tcp`) et `Get-NetTCPConnection -LocalPort 1883 -State Listen` (attendu : `0.0.0.0`).
+6. **Depuis le PC** : `Test-NetConnection <IP du PC> -Port 1883`. Attendu : `True`.
+7. **Carte** : téléverser (`pio run -d firmware -t upload`), puis lancer le moniteur série. Attendu :
+   ```
+   ----- TEST MQTT -----
+   [mqtt] broker .................. 172.20.10.x:1883
+   [mqtt] connexion tcp ........... NN ms
+   ```
+   Dans `docker compose logs mosquitto` : `New connection from 172.18.0.1` à chaque passe.
+8. **KO, broker arrêté** : `docker compose down`. Attendu : `[mqtt] KO`, vite. Noter la durée approximative de la pause avant la bannière suivante. Puis `docker compose up -d` : retour à OK.
+9. **KO, pare-feu (admin)** : `Disable-NetFirewallRule -DisplayName "Cypher Home - MQTT 1883"`. Attendu : `[mqtt] KO`, après une attente plus longue (la noter). Puis **(admin)** `Enable-NetFirewallRule -DisplayName "Cypher Home - MQTT 1883"` : retour à OK.
+10. **Fin** : `docker compose down`.
+
+### Ce que ces tests prouvent, et ce qu'ils ne prouvent pas
+
+| Test | Prouve | Ne prouve pas |
+|---|---|---|
+| 5. Adresse d'écoute | La porte est ouverte sur toutes les adresses du PC. | Que le pare-feu la laisse passer. |
+| 6. Depuis le PC | La porte répond sur l'IP Wi-Fi du PC. | Le pare-feu : une connexion du PC vers lui-même ne passe probablement pas par le filtrage des connexions entrantes [H]. Seule la carte le prouve. |
+| 7. Carte OK | La carte et le PC se parlent à travers le partage de l'iPhone, et le pare-feu laisse entrer le port 1883. | Que Mosquitto comprend la carte : aucun mot MQTT n'est encore échangé. |
+| 8. Broker arrêté | Le OK de l'étape 7 venait bien de notre broker. | N/A |
+| 9. Règle désactivée | C'est **notre** règle qui ouvre la porte (sauf règle Docker trouvée au point 3). | N/A |
+
+> **Ce qui reste à faire.** La carte frappe à la porte, mais ne dit rien. À l'étape 3, elle parle MQTT : elle se présente au broker (CONNECT), attend sa réponse (CONNACK) et publie un message sur `cypherhome/test`.

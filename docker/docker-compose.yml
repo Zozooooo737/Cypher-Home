@@ -9,10 +9,12 @@ services:
   mosquitto:
     image: eclipse-mosquitto:2.0.22
 
-    # Port du PC -> port du conteneur. « 127.0.0.1: » : seul le PC peut joindre le broker.
-    # La restriction se fait ici et non dans mosquitto.conf : dans le conteneur, 127.0.0.1 est le conteneur lui-même.
+    # Port du PC -> port du conteneur, ouvert sur toutes les adresses du PC (dont le Wi-Fi) pour que la carte l'atteigne.
+    # PROVISOIRE et dangereux tant que l'accès est anonyme : arrêter le broker (docker compose down) hors des tests.
+    # PC seul : "127.0.0.1:1883:1883". La restriction se fait ici et non dans mosquitto.conf :
+    # dans le conteneur, 127.0.0.1 est le conteneur lui-même.
     ports:
-      - "127.0.0.1:1883:1883"
+      - "1883:1883"
 
     # Dossier du dépôt monté là où Mosquitto lit sa configuration (/mosquitto/config/mosquitto.conf).
     volumes:

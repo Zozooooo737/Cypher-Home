@@ -8,6 +8,7 @@
 #include "components/buttons.h"
 #include "components/buzzer.h"
 #include "components/wifi.h"
+#include "components/mqtt.h"
 
 // Colonne où commencent les valeurs ; même valeur que VALUE_COLUMN de serial_monitor.py
 constexpr int SELF_TEST_VALUE_COLUMN = 33;
@@ -109,6 +110,10 @@ void self_test_run() {
 
     self_test_banner("WIFI");
     wifi_test();
+    Serial.println();
+
+    self_test_banner("MQTT");
+    mqtt_test();
     Serial.println();
 
     self_test_banner("ENSEMBLE");

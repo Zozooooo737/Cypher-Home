@@ -10,6 +10,7 @@
 #include "components/buttons.h"
 #include "components/buzzer.h"
 #include "components/wifi.h"
+#include "components/mqtt.h"
 
 constexpr unsigned long SELF_TEST_PAUSE_MS = 5000;
 
@@ -30,6 +31,7 @@ void setup() {
     buttons_setup();
     buzzer_setup();
     wifi_setup();
+    mqtt_setup();
 }
 
 void loop() {
