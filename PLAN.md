@@ -125,7 +125,8 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Livrable : script serveur de test + fiche.
   - Validation : fichier reçu intact, débit noté.
   - Dépend de : P2.1.
-- [ ] **P2.4 Accès à une page du PC depuis l'iPhone** (IMPORTANT)
+- [x] **P2.4 Accès à une page du PC depuis l'iPhone** (IMPORTANT)
+  - Note : critère atteint le 2026-11-11 (page de `server/test_page_server.py` affichée par localhost, par l'IP du PC et par `<nom du PC>.local`, sur le PC, sur l'iPhone qui émet le partage et sur un second téléphone connecté au partage) ; changement d'IP non testé.
   - Tâches : page de test ; [H] un second iPhone connecté au partage de connexion accède au serveur du PC ; [H] gérer le changement d'IP éventuel.
   - Validation : page affichée sur l'iPhone.
   - Dépend de : P2.1.
