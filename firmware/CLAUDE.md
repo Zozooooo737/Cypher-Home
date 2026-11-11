@@ -11,7 +11,7 @@ Complètent les « Règles de code » du `CLAUDE.md` racine (code minimal).
 - **`config.h`** : une constante n'y entre que si le code de la tâche l'utilise.
 
 ## Commandes
-- Compiler : `pio run -d firmware` (depuis la racine du dépôt ; autorisé sans demander). Le framework compile avec `-w` (avertissements masqués) : pour les voir, compiler une copie temporaire du projet hors du dépôt avec `build_unflags = -w` et `build_flags = -Wall -Wextra`.
+- Compiler : `pio run -d firmware` (depuis la racine du dépôt ; autorisé sans demander). Sur la machine de l'étudiant, `pio.exe` est bloqué par Windows : utiliser `& "$env:USERPROFILE\.platformio\penv\Scripts\python.exe" -m platformio run -d firmware` (PowerShell), et la même forme avec `-t upload` pour téléverser. Le framework compile avec `-w` (avertissements masqués) : pour les voir, compiler une copie temporaire du projet hors du dépôt avec `build_unflags = -w` et `build_flags = -Wall -Wextra`.
 - Téléverser : `pio run -d firmware -t upload`, uniquement quand l'étudiant dit que le câblage est vérifié et que la carte est branchée. Un seul programme peut tenir le port COM : arrêter le script série avant, ou le relancer pendant le téléversement (il attend que le port se libère).
 - Sortie série : `firmware\scripts\.venv\Scripts\python firmware\scripts\serial_monitor.py` (option `--port COMx` si la détection échoue). Il remplace `pio device monitor`. Il est lancé par l'étudiant (interactif) ; Claude Code lui demande le résultat.
 - Ne jamais déclarer qu'un test physique (LED, buzzer, écran, caméra, capteur) a réussi sans retour de l'étudiant.
@@ -123,7 +123,7 @@ Un **seul script Python remplace le moniteur série PlatformIO**, pour tous les 
 5. Téléverse seulement quand l'étudiant confirme le câblage. Demande-lui la sortie de `<composant>_test()` et, pour un composant visible (LED, buzzer, écran), ce qu'il constate.
 6. Ne considère pas le composant validé tant que l'étudiant n'a pas confirmé le résultat sur le matériel. Alors seulement : ajoute **une ligne** dans `self_test_run()` (sauf exception demandée par l'étudiant, voir plus haut).
 7. La fiche `docs/tests/<composant>.md` n'est rédigée que si l'étudiant le demande (règles dans le `CLAUDE.md` racine).
-8. Termine par « À vérifier sur la carte » et par ce que l'étudiant doit reporter dans `PLAN.md`, `DECISIONS.md` et `CONTEXTE_TECHNIQUE.md` (noms de pattes, valeurs de résistances, D1).
+8. Termine par « À vérifier sur la carte » et par ce qui est à reporter dans `PLAN.md` et `DECISIONS.md` (par Claude Code, après validation : règle du `CLAUDE.md` racine) et dans `CONTEXTE_TECHNIQUE.md` (par l'étudiant : noms de pattes, valeurs de résistances).
 
 ## Informations supplémentaires
 - Plateforme PlatformIO pour l'UNO R4 WiFi (Renesas RA4M1) ; Wi-Fi via le module ESP32-S3 de la carte. Vérifie la compatibilité de chaque bibliothèque avant de l'ajouter.

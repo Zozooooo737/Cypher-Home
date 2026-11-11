@@ -59,6 +59,13 @@ Travaille dans le dossier concerné par la tâche (hardware, firmware, server, d
 - À la fin de chaque tâche, Claude Code fournit **uniquement** les commits à faire, selon `docs/CONVENTION_COMMITS.md` (section « Livraison des commits par Claude Code ») : commits thématiques numérotés, commandes `git add` exactes, puis titre et paragraphe de 4 lignes maximum, sans puces, dans des blocs de code. Il signale tout fichier de secrets modifié (`secrets.h`, `.env`).
 - Filet de sécurité : règles `deny` dans `.claude/settings.json`. Elles ne remplacent pas cette règle.
 
+## PLAN.md et DECISIONS.md : mis à jour par Claude Code
+Claude Code modifie lui-même `PLAN.md` (cases cochées, notes d'étape) et `DECISIONS.md` (section « Décidé », colonne Impl. du tableau des fonctions, lignes retirées de « À valider ou à trancher », Journal), **uniquement** quand l'étudiant a validé dans la session ce qui doit y figurer, ou quand il le demande.
+- Il n'invente ni mesure, ni décision, ni résultat, et ne tranche jamais lui-même une décision Dn ouverte.
+- Il ne coche une étape que si son critère de validation est atteint et prouvé par ce que l'étudiant a fourni.
+- Chaque modification est annoncée dans sa réponse finale, avec le rappel de réimporter les fichiers dans le projet Claude Desktop.
+- La règle « Git : seul l'étudiant commite » reste inchangée.
+
 ## Règles de travail
 - Explications courtes ; développe seulement sur demande. Code fonctionnel directement, sans pédagogie ligne à ligne (code et commentaires : voir « Règles de code »).
 - **Ne jamais prétendre qu'un montage ou un code a été testé.** Indique ce qui reste à vérifier sur le matériel, en fin de réponse.
@@ -128,7 +135,7 @@ Règles du BILAN :
 - Séparer faits vérifiés / hypothèses / choix à valider par l'étudiant.
 - Ne jamais affirmer qu'un montage ou un code a été testé s'il ne l'a pas été. N'inventer ni valeurs, ni résultats, ni décisions.
 - Donner le texte exact à reporter, prêt à copier. L'étudiant valide chaque ligne.
-- Dans Claude Code, n'applique les modifications à `PLAN.md` et `DECISIONS.md` que si l'étudiant le demande après le BILAN, puis rappelle qu'il doit réimporter ces fichiers dans le projet Claude Desktop.
+- Dans Claude Code, les lignes validées par l'étudiant sont appliquées selon la règle « PLAN.md et DECISIONS.md : mis à jour par Claude Code ».
 
 ## Commande DOC
 Quand l'étudiant écrit « DOC », produis un texte prêt à coller dans Notion, avec ces rubriques :
