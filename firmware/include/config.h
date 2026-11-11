@@ -62,3 +62,14 @@ constexpr char MQTT_CLIENT_ID[] = "cypherhome-board";
 
 // MQTT : délai maximal d'attente de la réponse du broker (CONNACK) à la connexion.
 constexpr unsigned long MQTT_CONNECT_TIMEOUT_MS = 5000;
+
+// HTTP : port et chemin du serveur de réception sur le PC (provisoires : serveur de test de P2.3, D4 ouverte).
+constexpr uint16_t HTTP_SERVER_PORT = 8000;
+constexpr char HTTP_UPLOAD_PATH[] = "/upload";
+
+// HTTP : délais maximaux de connexion au serveur et d'attente de sa réponse.
+constexpr unsigned long HTTP_CONNECT_TIMEOUT_MS = 5000;
+constexpr unsigned long HTTP_RESPONSE_TIMEOUT_MS = 5000;
+
+// HTTP : taille des blocs du corps envoyés au module Wi-Fi (ESP32-S3) ; un bloc = une commande au module.
+constexpr size_t HTTP_BLOCK_BYTES = 2048;
