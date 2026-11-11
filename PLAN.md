@@ -112,7 +112,8 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Livrable : programme + fiche.
   - Validation : la carte obtient une IP et se reconnecte après redémarrage.
   - Dépend de : P0.2.
-- [ ] **P2.2 Broker MQTT local (Mosquitto) avec authentification** (ESSENTIEL)
+- [x] **P2.2 Broker MQTT local (Mosquitto) avec authentification** (ESSENTIEL)
+  - Note : critère atteint le 2026-11-11 (message de la carte reçu par mosquitto_sub, connexions sans mot de passe et avec mauvais mot de passe refusées : not authorised) ; Mosquitto sous Docker ; cours dans docs/cours/mqtt.md.
   - Rappel : MQTT = la carte publie des messages sur des « sujets », un broker les redistribue aux abonnés.
   - Tâches : installer Mosquitto (D8 : Docker ou natif), utilisateur/mot de passe hors Git, publier depuis la carte, recevoir sur le PC.
   - Livrable : config Mosquitto + programme.
