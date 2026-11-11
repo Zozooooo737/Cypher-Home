@@ -11,7 +11,7 @@
 | ----- | ---------------------------------- | ----------------- | ---- |
 | P0    | Cadrage                            | ESSENTIEL         | [x]  |
 | P1    | Test des composants                | ESSENTIEL         | [x]  |
-| P2    | Test réseau précoce                | ESSENTIEL         | [ ]  |
+| P2    | Test réseau précoce                | ESSENTIEL         | [x]  |
 | P3    | Câblage et schéma KiCad            | ESSENTIEL         | [ ]  |
 | P4    | Code de vérification au démarrage  | ESSENTIEL         | [ ]  |
 | P5    | Modèle de données et serveur       | ESSENTIEL         | [ ]  |
@@ -130,7 +130,8 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Tâches : page de test ; [H] un second iPhone connecté au partage de connexion accède au serveur du PC ; [H] gérer le changement d'IP éventuel.
   - Validation : page affichée sur l'iPhone.
   - Dépend de : P2.1.
-- [ ] **P2.5 Photo de bout en bout** (ESSENTIEL)
+- [x] **P2.5 Photo de bout en bout** (ESSENTIEL)
+  - Note : critère atteint le 2026-11-11 (JPEG reçus sur le PC dans les 7 résolutions, contrôlés par script et ouverts ; total médian 2,9 s en 640x480, 5,5 s en 1024x768, 27,8 s en 2592x1944) ; fiche `docs/tests/photo_http.md`.
   - Tâches : photo de P1.1 envoyée de la carte au PC via HTTP.
   - Validation : image ouvrable, temps total noté.
   - Dépend de : P1.1, P2.3.
