@@ -317,4 +317,101 @@ PC et carte sur le partage de connexion. Profil privé, règle de pare-feu activ
 | 5. Broker arrêté | Un échec donne une seule ligne ; durée de blocage mesurée. | Le cas « broker qui ne répond plus sans fermer la connexion » (non testé). |
 | 6. Retour | La reconnexion automatique fonctionne. | Sa tenue sur une longue durée. |
 
+### Résultat (2026-11-11)
+
+- Passe 1 : `[mqtt] connexion ... 68 ms`, message `bonjour de la carte, 20 s` reçu dans le terminal A.
+- Journaux : `New client connected from 172.18.0.1:42488 as cypherhome-board (p2, c1, k60)`. `k60` = keep alive de 60 s ; `c1` = session neuve à chaque connexion (*clean session*).
+- Passe 2, broker arrêté : `[mqtt] KO` sur une seule ligne.
+- Passe 3, broker relancé : reconnexion automatique (85 ms), message `bonjour de la carte, 71 s` reçu.
+- Durée de blocage : 21 s entre les passes 1 et 2 (normal), 31 s entre les passes 2 et 3 (KO). Le KO coûte donc **environ 10 s**. C'est la durée du délai du module Wi-Fi (10 s) : l'échec « rapide » prévu à l'étape 2 n'est pas observé ici. Cause exacte non vérifiée [H].
+
 > **Ce qui reste à faire.** N'importe qui sur le Wi-Fi peut encore lire et publier, y compris une fausse commande. À l'étape 4, le broker exige un utilisateur et un mot de passe, et la carte présente les siens dans CONNECT.
+
+## Étape 4 : authentification
+
+### Pourquoi un mot de passe
+
+Sans lui, tout appareil du même Wi-Fi peut lire les mesures et **publier** à la place de la carte ou du serveur : de fausses mesures, ou plus tard une fausse commande « désactiver la surveillance ». *Le gardien ne remet plus de lettre et n'en accepte plus sans badge.*
+
+### Les notions de l'étape
+
+- **Authentification** : prouver qui l'on est. Ici, un **utilisateur** et un **mot de passe**, envoyés dans CONNECT. Le broker répond par CONNACK : 0 = accepté, sinon refus et fermeture de la connexion.
+- **Hachage** : le broker ne garde pas les mots de passe, mais leur **empreinte**. Une fonction de hachage transforme un mot de passe en une suite de caractères ; on ne peut pas revenir en arrière. À la connexion, le broker calcule l'empreinte du mot de passe reçu et la compare à celle du fichier. Un **sel** (valeur aléatoire propre à chaque utilisateur) rend deux empreintes différentes même pour deux mots de passe identiques. *Le gardien garde un moulage du badge, pas le badge.*
+- Une ligne du fichier ressemble à `cypherhome-board:$7$101$<sel>$<empreinte>` : `7` désigne la méthode (PBKDF2-SHA512), `101` le nombre de répétitions du calcul [H].
+- **Un utilisateur par usage** : `cypherhome-board` pour la carte, `cypherhome-server` pour le futur serveur Python (et pour les tests depuis le PC). Si un mot de passe fuit, on change celui-là seul, et les journaux disent qui s'est connecté.
+
+### Ce qui change
+
+| Fichier, ligne | Ce qu'elle fait | Ce qui casse si on l'enlève |
+|---|---|---|
+| `mosquitto.conf` : `allow_anonymous false` | Refuse tout client sans utilisateur valide. | C'est déjà la valeur par défaut de Mosquitto 2 ; l'écrire rend la règle visible. Avec `true`, on revient à l'étape 3 : tout le monde entre. |
+| `mosquitto.conf` : `password_file /mosquitto/config/passwd` | Indique où lire les utilisateurs et leurs empreintes. | Sans fichier et sans anonymes, plus personne ne peut se connecter. |
+| `docker/mosquitto/config/passwd` | Le fichier des empreintes, créé par `mosquitto_passwd`. Ignoré par Git (règle `**/passwd` du `.gitignore`). | Fichier absent : Mosquitto refuse de démarrer [H]. |
+| `secrets.h` : `MQTT_USERNAME`, `MQTT_PASSWORD` | Identifiants de la carte, hors Git. | Ne compile plus. |
+| `mqtt.cpp` : `setUsernamePassword(...)` | Ajoute utilisateur et mot de passe à CONNECT. | La carte se présente sans badge : `[mqtt] KO` à chaque passe. |
+
+### Créer les utilisateurs : `mosquitto_passwd`
+
+- `-c` (*create*) **crée** le fichier, et écrase celui qui existe. On l'utilise pour le **premier** utilisateur seulement. Pour le second, on l'omet : sinon le fichier est recréé et le premier utilisateur disparaît.
+- `docker compose run --rm` plutôt que `exec` : `exec` lance une commande dans le conteneur **en marche** ; or, sans fichier de mots de passe, le broker ne peut pas tourner. `run` crée un conteneur temporaire avec le même dossier monté, y lance `mosquitto_passwd`, et `--rm` le supprime à la fin. Le fichier reste, car il est écrit dans le dossier du dépôt.
+
+### Codes de connexion d'ArduinoMqttClient (`connectError()`)
+
+| Code | Nom                                  | Sens                                                                         |
+| ---- | ------------------------------------ | ---------------------------------------------------------------------------- |
+| -2   | `MQTT_CONNECTION_REFUSED`            | La connexion TCP n'a pas abouti (malgré le nom, ce n'est pas un refus MQTT). |
+| -1   | `MQTT_CONNECTION_TIMEOUT`            | Pas de CONNACK dans le délai (5 s).                                          |
+| 0    | `MQTT_SUCCESS`                       | Accepté.                                                                     |
+| 1    | `MQTT_UNACCEPTABLE_PROTOCOL_VERSION` | Version de MQTT refusée.                                                     |
+| 2    | `MQTT_IDENTIFIER_REJECTED`           | Identifiant client refusé.                                                   |
+| 3    | `MQTT_SERVER_UNAVAILABLE`            | Broker indisponible.                                                         |
+| 4    | `MQTT_BAD_USER_NAME_OR_PASSWORD`     | Utilisateur ou mot de passe mal formé.                                       |
+| 5    | `MQTT_NOT_AUTHORIZED`                | Refusé. Mosquitto renvoie ce code pour un mauvais mot de passe [H].          |
+
+En cas d'échec, la carte affiche `[mqtt] KO` puis une ligne `[mqtt] code erreur ..... N` avec ce code. C'est une **exception choisie** à la convention des tests (« une seule ligne KO ») : le code dit tout de suite si la carte n'a pas atteint le broker (-2, -1) ou si le broker l'a refusée (1 à 5). Les journaux du broker confirment : `not authorised` = mauvais identifiants ; aucune ligne = la carte n'a pas atteint le broker.
+
+| Ligne de `mqtt_test()` | Ce qu'elle fait | Ce qui casse si on l'enlève |
+|---|---|---|
+| `snprintf(code, …, "%d", connectError())` puis `self_test_print(...)` | Affiche le code de la dernière tentative de connexion, en texte (`self_test_print()` n'affiche pas les entiers négatifs). | Retour au seul `[mqtt] KO` : il faut ouvrir les journaux du broker pour savoir pourquoi. |
+
+Limite [H] : si la connexion réussit mais que l'envoi du message échoue, le code affiché est `0` (connexion acceptée) ; ce cas n'a pas été observé.
+
+### Ce qui n'est PAS protégé
+
+**Sans TLS, le mot de passe passe en clair sur le Wi-Fi** : un appareil qui écoute le réseau peut le lire, ainsi que tous les messages (TLS = P10.2, bonus). **Il n'y a pas de droits par sujet** : tout utilisateur accepté peut lire et publier sur tous les sujets. Enfin, le mot de passe tapé dans une commande `mosquitto_pub -P` reste dans l'historique de PowerShell.
+
+### Scénario de test
+
+1. **Mots de passe** : en choisir deux, longs (20 caractères ou plus), différents, sans `"` ni `\`. Ajouter `MQTT_USERNAME` et `MQTT_PASSWORD` dans `secrets.h` (voir `secrets.example.h`).
+2. **Utilisateurs** (dans `docker`, broker arrêté avec `docker compose down`). Chaque commande demande le mot de passe deux fois :
+   - `docker compose run --rm mosquitto mosquitto_passwd -c /mosquitto/config/passwd cypherhome-board`
+   - `docker compose run --rm mosquitto mosquitto_passwd /mosquitto/config/passwd cypherhome-server`
+   - `Get-Content mosquitto\config\passwd` : deux lignes, `cypherhome-board:$7$…` et `cypherhome-server:$7$…`.
+   - Depuis la racine du dépôt : `git status --short` ne doit **pas** lister `passwd`.
+3. **Broker** : `docker compose up -d`, puis `docker compose logs mosquitto`. Attendu : `running`. Un avertissement sur les droits du fichier (`world readable`) est possible [H].
+4. **Abonné**, terminal A : `docker compose exec mosquitto mosquitto_sub -u cypherhome-server -P <mot de passe serveur> -t cypherhome/test -v`.
+5. **Trois essais**, terminal B :
+   - bon mot de passe : `docker compose exec mosquitto mosquitto_pub -u cypherhome-server -P <mot de passe serveur> -t cypherhome/test -m "avec mot de passe"`. Attendu : reçu dans A ;
+   - sans mot de passe : `docker compose exec mosquitto mosquitto_pub -t cypherhome/test -m "sans mot de passe"`. Attendu : `Connection Refused: not authorised`, rien dans A ;
+   - mauvais mot de passe : `docker compose exec mosquitto mosquitto_pub -u cypherhome-server -P faux -t cypherhome/test -m "mauvais mot de passe"`. Attendu : même refus, rien dans A.
+6. **Carte, bons identifiants** : téléverser, moniteur série. Attendu : 4 lignes `[mqtt]` comme à l'étape 3, message reçu dans A, `as cypherhome-board` dans les journaux.
+7. **Carte, mauvais mot de passe** : changer `MQTT_PASSWORD` dans `secrets.h`, téléverser. Attendu : `[mqtt] KO` à chaque passe ; `Client cypherhome-board disconnected, not authorised` dans les journaux [H] ; noter l'écart entre deux passes. Remettre le bon mot de passe, téléverser : retour à OK.
+8. **Fin** : `docker compose down`.
+
+### Ce que ces tests prouvent, et ce qu'ils ne prouvent pas
+
+| Test | Prouve | Ne prouve pas |
+|---|---|---|
+| 2. Fichier `passwd` | Les deux utilisateurs existent, sous forme d'empreintes ; le fichier reste hors Git. | N/A |
+| 5. Trois essais `mosquitto_pub` | Le broker n'accepte que les bons identifiants : **critère « connexion refusée sans mot de passe » de PLAN.md**. | Le chemin réseau : ces outils tournent dans le conteneur. Mais la règle s'applique à tous les clients, d'où qu'ils viennent. |
+| 6. Carte OK | La carte s'authentifie et publie : **critère « message reçu » de PLAN.md**, avec mot de passe. | Que le mot de passe est protégé en route (il ne l'est pas, voir plus haut). |
+| 7. Carte KO | Un mauvais mot de passe donne `[mqtt] KO`, et le broker dit pourquoi. | N/A |
+
+### Résultat (2026-11-11)
+
+- Scénario déroulé ; selon mon compte rendu, tous les points se sont passés comme attendu : connexions sans mot de passe et avec un mauvais mot de passe refusées, refus visible dans les journaux, retour à OK avec le bon mot de passe.
+- Carte, bons identifiants : 4 lignes `[mqtt]`, connexion en 74 ms, messages `bonjour de la carte, 19 s` puis `40 s`.
+- Carte, mauvais mot de passe : `[mqtt] KO` sur une seule ligne (avant l'ajout de la ligne du code d'erreur).
+- Non relevé : sorties exactes des trois essais `mosquitto_pub` et des journaux, code d'erreur renvoyé (le code 5 reste une hypothèse [H]).
+
+> **Ce qui reste à faire.** Les secrets existent maintenant à trois endroits : `secrets.h`, `passwd`, et bientôt le `.env` du serveur. À l'étape 5, on vérifie qu'aucun n'entre dans Git, ni aujourd'hui ni dans l'historique, et on prépare l'endroit où le serveur Python lira ses identifiants.

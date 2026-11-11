@@ -17,11 +17,13 @@ static MqttClient s_mqtt_client(s_wifi_client);
 // Durée de la dernière connexion réussie (TCP + CONNECT/CONNACK)
 static unsigned long s_connect_ms = 0;
 
-// connect() ouvre une connexion TCP neuve, envoie CONNECT et attend CONNACK
-// au plus MQTT_CONNECT_TIMEOUT_MS ; il ferme d'abord l'éventuelle connexion précédente.
+// connect() ouvre une connexion TCP neuve, envoie CONNECT (avec utilisateur et mot de passe)
+// et attend CONNACK au plus MQTT_CONNECT_TIMEOUT_MS ; il ferme d'abord l'éventuelle connexion précédente.
+// Identifiants refusés : CONNACK non nul, connect() renvoie 0 (code dans connectError()).
 bool mqtt_setup() {
     unsigned long start_ms = millis();
     s_mqtt_client.setId(MQTT_CLIENT_ID);
+    s_mqtt_client.setUsernamePassword(MQTT_USERNAME, MQTT_PASSWORD);
     s_mqtt_client.setConnectionTimeout(MQTT_CONNECT_TIMEOUT_MS);
     if (!s_mqtt_client.connect(MQTT_BROKER_IP, MQTT_BROKER_PORT)) {
         return false;
@@ -47,12 +49,16 @@ bool mqtt_publish(const char *topic, const char *payload) {
     return s_mqtt_client.endMessage();
 }
 
-// Publie un message daté (secondes depuis le démarrage) pour reconnaître chaque passe ; échec = une seule ligne KO
+// Publie un message daté (secondes depuis le démarrage) pour reconnaître chaque passe.
+// Échec : ligne KO, puis le code de la dernière connexion (connectError(), peut être négatif : affiché en texte).
 bool mqtt_test() {
     char payload[40];
     snprintf(payload, sizeof(payload), "bonjour de la carte, %lu s", millis() / 1000);
     if (!mqtt_publish(TEST_TOPIC, payload)) {
         Serial.println("[mqtt] KO");
+        char code[8];
+        snprintf(code, sizeof(code), "%d", s_mqtt_client.connectError());
+        self_test_print("mqtt", "code erreur", code);
         return false;
     }
 
