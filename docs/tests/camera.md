@@ -110,7 +110,7 @@ Raisons du verdict : Caméra fonctionnelle et enregistrement opérationnel.
 | 2026-11-06 | 460 800       | **320x240**    | 8 367           | 257          | **201**         |
 
 - Valeurs à revérifier dans la sortie brute, sans effet sur le choix de résolution : 115200 bauds / 1024x768 (11,4 Ko/s, proche du maximum théorique d'environ 11,5 Ko/s) ; 115200 bauds / 2592x1944 (10,2 Ko/s) et 460800 bauds / 2048x1536 (44,1 Ko/s), qui s'écartent des lignes voisines.
-- Photo : `docs/tests/camera.jpg`
+- Photo : `docs/tests/photo.jpg`
 
 ## Pièges et limites
 
