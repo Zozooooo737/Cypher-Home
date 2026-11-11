@@ -13,6 +13,7 @@ Une information vit dans un seul fichier. Ne les contredis pas ; en cas de confl
 | `DECISIONS.md` | périmètre, échéance, décisions prises, décisions ouvertes (D1…), tableau des fonctions et avancement, journal |
 | `PLAN.md` | étapes ordonnées (P0.1 à P12.1), dépendances, risques et plans B, cases cochées |
 | `docs/` | cahier des charges (CC, visé, plus large que le périmètre réel) et bon de commande (BC) ; fiches de test des composants dans `docs/tests/` |
+| `docs/cours/` | cours et rapports longs de l'étudiant, un fichier par sujet (ex. `mqtt.md`) |
 
 À lire au début de chaque session : `DECISIONS.md`, `PLAN.md`, `CONTEXTE_TECHNIQUE.md` ; `docs/` seulement si un détail fonctionnel manque. Pour tout travail dans `firmware/`, lis aussi `firmware/CLAUDE.md` : il contient la structure du firmware et les règles à appliquer à chaque composant.
 Le dépôt est la copie de référence. Une copie de `CONTEXTE_TECHNIQUE.md`, `DECISIONS.md` et `PLAN.md` existe dans le projet Claude Desktop : l'étudiant la remet à jour à la main après chaque modification.
@@ -25,6 +26,7 @@ CypherHome/
 ├── DECISIONS.md
 ├── PLAN.md
 ├── docs/                    # CC, BC, CONVENTION_COMMITS.md
+│   ├── cours/               # cours et rapports longs (un fichier par sujet)
 │   └── tests/               # _modele.md, fiches de test (une par composant), matrice de compatibilité
 ├── hardware/                # schéma KiCad, datasheets (voir hardware/CLAUDE.md)
 │   ├── kicad/
@@ -44,11 +46,12 @@ Travaille dans le dossier concerné par la tâche (hardware, firmware, server, d
 
 ## Conventions du dépôt
 - **Langue** : noms de fichiers, de fonctions et de variables du code en anglais (`snake_case`, fonctions préfixées par le nom du composant, par exemple `camera_setup()`). Commentaires de code et documents `.md` en français.
-- **Pas de dossier de tests séparé** : chaque composant du firmware a un module qui contient sa propre fonction de test (voir `firmware/CLAUDE.md`).
+- **Pas de dossier de tests séparé** : chaque composant du firmware a un module qui contient sa propre fonction de test (voir `firmware/CLAUDE.md`). Exception : pour MQTT, le cours docs/cours/mqtt.md tient lieu de fiche.
 - **Fiches de test** : une par composant dans `docs/tests/<composant>.md` (les 4 LED partagent une fiche), nom identique à celui du module, modèle `docs/tests/_modele.md`. Une page, sans code (elle renvoie au fichier du dépôt), rédigée une fois le composant validé sur le matériel par l'étudiant. Claude Code ne la rédige que si l'étudiant le demande, à partir des seules informations fournies (mesures, sortie série, photo) : jamais de valeur inventée, section non renseignée = « à compléter ». Comme elle est hors du dossier de travail, le dire.
 - **Câblage, trois niveaux** : la fiche garde le câblage *testé* (daté) ; `firmware/include/pins.h` garde le câblage *courant* ; la table D3 validée dans `DECISIONS.md` fait foi.
 - **Python** : un `.venv` par dossier Python (`firmware/scripts/`, `server/`), jamais committé. VS Code n'utilise qu'un interpréteur à la fois : l'étudiant sélectionne celui du dossier courant.
 - **Fichiers ignorés par Git** : secrets (`secrets.h`, `.env`), `.venv`, `firmware/output/` (les images de test montrent l'intérieur du logement). Pour une fiche, une seule photo choisie, sans élément personnel, est copiée dans `docs/tests/`.
+- **Cours** : `docs/cours/<sujet>.md`, rapports longs et pédagogiques (notions, explications, scénarios, résultats), distincts des fiches de test : `docs/tests/` = fiches d'une page sans code ; `docs/cours/` = cours avec explications. Rédigés à la demande de l'étudiant. Un cours peut tenir lieu de fiche quand l'étudiant le décide (cas de MQTT, P2.2).
 
 ## Git : seul l'étudiant commite
 **Claude Code ne lance JAMAIS** `git add`, `git commit` (y compris `git commit --amend`), `git push`, `git reset`, `git stash` ni `git rebase`. Seul l'étudiant commite.
@@ -80,7 +83,7 @@ S'applique à tous les composants du firmware (`<composant>_test()`) et aux lign
 - Chaque test commence par la bannière `----- TEST NOM -----` (affichée par `self_test.cpp`) et se termine par une ligne vide.
 - Une valeur par ligne : `[étiquette] libellé ..... valeur unité`. Les points alignent toutes les valeurs sur une même colonne (`SELF_TEST_VALUE_COLUMN` dans `self_test.cpp`, `VALUE_COLUMN` dans `serial_monitor.py` : même valeur).
 - Les lignes sont écrites uniquement avec `self_test_print()` (`self_test.h` : texte, entier avec unité, flottant avec unité) ; côté Python, `print_value()`. Personne ne recopie la logique des points.
-- Échec (composant absent, bus muet, lecture invalide) : **une seule ligne**, `[étiquette] KO`, sans explication, sans conseil de câblage ni scan. Le diagnostic se fait avec la fiche `docs/tests/<composant>.md`.
+- Échec (composant absent, bus muet, lecture invalide) : **une seule ligne**, `[étiquette] KO`, sans explication, sans conseil de câblage ni scan. Le diagnostic se fait avec la fiche `docs/tests/<composant>.md`. Exception validée : [mqtt] KO est suivi d'une ligne [mqtt] code erreur (DECISIONS.md, Méthode).
 - Pas de fonction `<composant>_last_error()` : les fonctions principales renvoient simplement `false`.
 
 ```text

@@ -1,6 +1,6 @@
 # MQTT dans Cypher Home (P2.2)
 
-> Mon cours de P2.2, écrit étape par étape : une section par étape, dans l'ordre. Ce n'est pas la fiche de test d'une page : elle sera tirée de ce fichier à la fin.
+> Mon cours de P2.2, écrit étape par étape : une section par étape, dans l'ordre. Pour MQTT, ce cours tient lieu de fiche de test : il n'y a pas de fiche d'une page dans `docs/tests/`.
 
 ## Objectif de P2.2
 
@@ -414,7 +414,7 @@ Limite [H] : si la connexion réussit mais que l'envoi du message échoue, le co
 - Carte, bons identifiants : 4 lignes `[mqtt]`, connexion en 74 ms.
 - Carte, mauvais mot de passe : `[mqtt] KO` (avant l'ajout de la ligne du code d'erreur).
 - Non relevé : la ligne des journaux du refus de la carte et le code d'erreur renvoyé (le code 5 reste une hypothèse [H]).
-- Défaut constaté : le mot de passe de `cypherhome-server` est très court et a été tapé en clair (`-P`), donc il est resté dans l'historique de PowerShell. À changer (voir étape 5).
+- Défaut constaté : le mot de passe de `cypherhome-server` est très court et a été tapé en clair (`-P`), donc il est resté dans l'historique de PowerShell. Changé à l'étape 5.
 
 > **Ce qui reste à faire.** Les secrets existent maintenant à trois endroits : `secrets.h`, `passwd`, et bientôt le `.env` du serveur. À l'étape 5, on vérifie qu'aucun n'entre dans Git, ni aujourd'hui ni dans l'historique, et on prépare l'endroit où le serveur Python lira ses identifiants.
 
@@ -496,3 +496,61 @@ Pour le serveur, `127.0.0.1` suffit : il tourne sur le PC, le port publié par D
 | 4 | Mes valeurs actuelles ne sont dans aucun commit. | Qu'elles ne sont nulle part ailleurs (copie, capture d'écran, conversation). |
 
 > **Ce qui reste à faire.** Tous les morceaux existent : carte, Wi-Fi, pare-feu, Docker, broker avec mots de passe, secrets hors Git. L'étape 6 vérifie les deux critères de P2.2 sur les sorties relevées, et retrace le chemin complet d'un message.
+
+### Résultat (2026-11-11)
+
+Étape faite : mot de passe de `cypherhome-server` changé (nouveau accepté, ancien refusé), anciennes commandes `-P` retirées de l'historique de PowerShell, `server/.env` ignoré par Git, et aucune de mes valeurs (Wi-Fi, carte, serveur) trouvée dans l'historique du dépôt.
+
+## Étape 6 : clôture de P2.2
+
+### Les deux critères de PLAN.md
+
+| Critère | Preuve relevée (2026-11-11) | Ce qui n'est pas prouvé |
+|---|---|---|
+| Message de la carte reçu sur le PC | L'abonné `mosquitto_sub` (utilisateur `cypherhome-server`) affiche `cypherhome/test bonjour de la carte, 19 s`, puis `40 s` et `20 s`. Les journaux montrent `New client connected from 172.18.0.1 … as cypherhome-board (… u'cypherhome-board')`. | L'abonné tournait **dans** le conteneur (`exec`) : la réception par un programme du PC, à travers le port publié, sera vérifiée avec le serveur (P5.2). La livraison n'est pas garantie (QoS 0). |
+| Connexion refusée sans mot de passe | Journaux : deux fois `disconnected, not authorised` (sans mot de passe, puis mauvais mot de passe) ; aucun de ces deux messages n'arrive chez l'abonné. La carte avec un mauvais mot de passe affiche `[mqtt] KO`. | Les essais refusés venaient du conteneur, pas du Wi-Fi ; la règle `allow_anonymous false` s'applique à tous les clients [H]. Le code d'erreur de la carte (5 attendu) n'a pas été relevé. |
+
+### Ce qui a été construit
+
+| Fichier | Rôle |
+|---|---|
+| `docker/docker-compose.yml` | Lance Mosquitto 2.0.22 dans un conteneur, publie le port 1883 sur toutes les adresses du PC, monte le dossier de configuration. |
+| `docker/mosquitto/config/mosquitto.conf` | Écoute sur 1883, refuse les anonymes, lit les empreintes dans `passwd`. |
+| `docker/mosquitto/config/passwd` (hors Git) | Empreintes de `cypherhome-board` et `cypherhome-server`. |
+| Règle de pare-feu « Cypher Home - MQTT 1883 » (hors dépôt) | Laisse entrer TCP 1883, profil privé seulement. |
+| `firmware/src/components/mqtt.h/.cpp` | `mqtt_setup()`, `mqtt_publish()` (avec reconnexion), `mqtt_test()`. |
+| `firmware/include/config.h` | Port, identifiant client, délai d'attente de CONNACK. |
+| `firmware/include/secrets.h` (hors Git) | IP du PC, utilisateur et mot de passe de la carte. |
+| `server/.env.example` | Modèle des identifiants du futur serveur. |
+
+### Le chemin complet d'un message
+
+*La lettre de la carte traverse l'immeuble jusqu'à la boîte aux lettres de l'abonné.*
+
+1. **Carte** (`172.20.10.2`) : `mqtt_publish()` écrit un paquet PUBLISH (sujet `cypherhome/test`, contenu). La connexion a été ouverte avant par CONNECT, avec utilisateur et mot de passe ; le broker a répondu CONNACK 0. *On écrit la lettre ; le badge a été montré à l'entrée.*
+2. **Wi-Fi de l'iPhone** : le module Wi-Fi de la carte (ESP32-S3) envoie le paquet en TCP vers `172.20.10.3:1883`, l'adresse du PC. *La rue, jusqu'à l'adresse de l'immeuble.*
+3. **Pare-feu Windows** : la règle « Cypher Home - MQTT 1883 » laisse entrer TCP 1883 parce que le réseau est en profil privé. *Le vigile laisse passer vers la porte 1883.*
+4. **Port publié par Docker** : le port 1883 du PC est relié au port 1883 du conteneur. La connexion y arrive depuis `172.18.0.1`, l'adresse de Docker, et non celle de la carte. *Le couloir vers le local préfabriqué.*
+5. **Mosquitto** : il a vérifié le badge à la connexion (empreinte dans `passwd`). Il lit l'étiquette `cypherhome/test` et cherche qui s'y est abonné. *Le gardien trie le courrier.*
+6. **Abonné** (`mosquitto_sub`, utilisateur `cypherhome-server`) : il reçoit `cypherhome/test bonjour de la carte, …`. *La lettre arrive dans la bonne boîte.*
+
+Ce qui casse à chaque maillon, d'après les tests : IP périmée ou broker arrêté → `[mqtt] KO` (étapes 2 et 3) ; règle de pare-feu désactivée → `[mqtt] KO` (étape 2) ; mauvais mot de passe → `[mqtt] KO` et `not authorised` (étape 4).
+
+### Limites restantes
+
+- **Rien n'est chiffré** : mot de passe et messages passent en clair sur le Wi-Fi (TLS : P10.2, bonus).
+- **Pas de droits par sujet** : tout utilisateur accepté lit et publie partout.
+- **L'IP du PC change** à chaque session de partage : elle est écrite dans `secrets.h`, à mettre à jour puis téléverser.
+- **Un échec bloque la carte environ 10 s** (mesuré à l'étape 3) : à traiter avant le firmware final, qui ne doit pas bloquer.
+- **Le broker se lance à la main** (Docker Desktop, puis `docker compose up -d`) et s'arrête hors des tests.
+- QoS 0 seulement, pas encore de testament (LWT), un seul sujet de test.
+- Le code d'erreur affiché par la carte en cas de refus (5 attendu) et la cause du blocage d'environ 10 s n'ont pas été observés.
+- La réception par un programme du PC hors du conteneur, à travers le port publié, n'est pas encore testée : prévue en P5.2.
+
+### Et ensuite
+
+- **P5.2 (serveur Python)** : il s'abonnera aux sujets de la carte avec l'utilisateur `cypherhome-server`, en lisant `server/.env`, à l'adresse `127.0.0.1:1883`. C'est aussi lui qui validera les messages reçus.
+- **P6.1 (firmware)** : `mqtt_publish()` servira à publier les mesures du BME680 toutes les 5 s, sur des sujets à définir. Le testament (LWT) donnera le statut de connexion de la carte. Le blocage de 10 s devra être réglé à ce moment-là.
+- D8 est tranchée après P2.2 : Docker pour Mosquitto (Docker pour MongoDB à confirmer en P5.1). D4 (MQTT pour les mesures) reste **ouverte** : P2.2 montre que MQTT fonctionne, la décision reste à prendre.
+
+> **Ce qui reste à faire.** P2.2 est terminée (cochée dans `PLAN.md`). Ce cours tient lieu de fiche de test pour MQTT. La suite côté MQTT viendra avec le serveur (P5.2) et la publication des mesures (P6.1).
