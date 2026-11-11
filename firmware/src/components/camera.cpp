@@ -4,6 +4,7 @@
 #include <ArduCAM.h>
 
 #include "camera.h"
+#include "http.h"
 #include "config.h"
 #include "pins.h"
 #include "self_test.h"
@@ -24,6 +25,8 @@ constexpr unsigned long CAMERA_RESET_MS = 100;
 constexpr uint8_t CAMERA_SENSOR_ADDRESS = 0x3C;
 constexpr uint8_t CAMERA_SENSOR_ID_HIGH = 0x56;
 constexpr uint8_t CAMERA_SENSOR_ID_LOW = 0x42;
+
+constexpr uint8_t BENCH_SENDS_PER_RESOLUTION = 3;
 
 static ArduCAM s_camera(OV5642, CAMERA_CS_PIN);
 static const SPISettings s_spi_settings(CAMERA_SPI_FREQUENCY_HZ, MSBFIRST, SPI_MODE0);
@@ -54,6 +57,11 @@ static bool camera_sensor_read(uint16_t reg, uint8_t &value) {
     }
     value = static_cast<uint8_t>(Wire.read());
     return true;
+}
+
+static void camera_set_resolution(uint8_t resolution) {
+    s_camera.OV5642_set_JPEG_size(resolution);
+    delay(CAMERA_SETTLE_MS);
 }
 
 bool camera_setup() {
@@ -90,9 +98,8 @@ bool camera_setup() {
     s_camera.set_format(JPEG);
     s_camera.InitCAM();
     s_camera.set_bit(ARDUCHIP_TIM, VSYNC_LEVEL_MASK);
-    s_camera.OV5642_set_JPEG_size(CAMERA_RESOLUTION);
     SPI.endTransaction();
-    delay(CAMERA_SETTLE_MS);
+    camera_set_resolution(CAMERA_RESOLUTION);
 
     SPI.beginTransaction(s_spi_settings);
     s_camera.clear_fifo_flag();
@@ -221,4 +228,50 @@ bool camera_test() {
     self_test_print("camera", "format", "JPEG");
     self_test_print("camera", "capture", capture_ms, "ms");
     return true;
+}
+
+bool camera_http_test() {
+    uint32_t length = 0;
+    unsigned long start_ms = millis();
+    if (!camera_capture(length)) {
+        Serial.println("[camera] KO");
+        return false;
+    }
+    unsigned long capture_ms = millis() - start_ms;
+
+    int status;
+    start_ms = millis();
+    camera_read_begin();
+    bool sent = http_upload(length, camera_read_block, status);
+    camera_read_end();
+    unsigned long send_ms = millis() - start_ms;
+
+    if (!sent) {
+        char code[8];
+        snprintf(code, sizeof(code), "%d", status);
+        Serial.println("[http] KO");
+        self_test_print("http", "code erreur", code);
+        return false;
+    }
+
+    self_test_print("photo", "taille", length, "octets");
+    self_test_print("photo", "capture", capture_ms, "ms");
+    self_test_print("photo", "envoi", send_ms, "ms");
+    self_test_print("photo", "total", capture_ms + send_ms, "ms");
+    self_test_print("photo", "debit", length / 1024.0f / (send_ms / 1000.0f), "ko/s");
+    return true;
+}
+
+void camera_http_bench() {
+    char line[16];
+    for (uint8_t resolution = 0; resolution < sizeof(CAMERA_SIZES) / sizeof(CAMERA_SIZES[0]); resolution++) {
+        camera_setup();
+        camera_set_resolution(resolution);
+        snprintf(line, sizeof(line), "%ux%u", CAMERA_SIZES[resolution][0], CAMERA_SIZES[resolution][1]);
+        self_test_print("photo", "resolution", line);
+        for (uint8_t i = 0; i < BENCH_SENDS_PER_RESOLUTION; i++) {
+            camera_http_test();
+        }
+    }
+    camera_set_resolution(CAMERA_RESOLUTION);
 }

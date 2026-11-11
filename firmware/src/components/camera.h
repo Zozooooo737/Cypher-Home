@@ -17,3 +17,9 @@ void camera_read_end();
 
 // Test : une capture envoyée au PC par le port série, puis ses caractéristiques, ou « [camera] KO »
 bool camera_test();
+
+// Test : une photo envoyée en HTTP, puis taille, capture, envoi, total et débit, ou « [camera] KO » / « [http] KO » et le code d'erreur
+bool camera_http_test();
+
+// Banc P2.5 : 3 photos envoyées en HTTP dans chaque résolution, puis retour à celle de config.h ; mesures, ou « [camera] KO » / « [http] KO » et le code d'erreur
+void camera_http_bench();

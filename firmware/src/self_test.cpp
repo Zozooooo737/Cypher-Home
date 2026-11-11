@@ -121,6 +121,10 @@ void self_test_run() {
     http_test();
     Serial.println();
 
+    self_test_banner("PHOTO HTTP");
+    camera_http_test();
+    Serial.println();
+
     self_test_banner("ENSEMBLE");
     self_test_together();
     Serial.println();
