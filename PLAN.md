@@ -119,7 +119,8 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Livrable : config Mosquitto + programme.
   - Validation : message reçu ; connexion refusée sans mot de passe.
   - Dépend de : P2.1, D8.
-- [ ] **P2.3 Envoi HTTP d'un gros fichier** (ESSENTIEL)
+- [x] **P2.3 Envoi HTTP d'un gros fichier** (ESSENTIEL)
+  - Note : critère atteint le 2026-11-11 (16, 32, 64 et 128 ko reçus intacts : taille, SHA-256 et motif vérifiés par le serveur ; débit d'environ 10,3 ko/s en blocs de 512 octets, 10,8 ko/s en blocs de 2048) ; fiche `docs/tests/http.md`.
   - Tâches : POST de plusieurs dizaines de ko vers un petit serveur Python.
   - Livrable : script serveur de test + fiche.
   - Validation : fichier reçu intact, débit noté.
