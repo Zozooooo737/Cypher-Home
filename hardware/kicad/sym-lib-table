@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "CypherHome") (type "KiCad") (uri "${KIPRJMOD}/CypherHome.kicad_sym") (options "") (descr ""))
+)
