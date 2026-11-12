@@ -142,7 +142,8 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
 
 ## P3 : Câblage et schéma KiCad
 
-- [ ] **P3.1 Bibliothèque KiCad du projet** (ESSENTIEL)
+- [x] **P3.1 Bibliothèque KiCad du projet** (ESSENTIEL)
+  - Note : critère atteint le 2026-11-12 (15 symboles dans hardware/kicad/CypherHome.kicad_sym ; noms de broches comparés à CONTEXTE_TECHNIQUE.md par lecture du fichier, non testés sur le matériel) ; empreintes non terminées, hors critère ; correspondances de noms consignées dans CONTEXTE_TECHNIQUE.md.
   - Objectif : symboles et empreintes des modules avec les noms de broches officiels.
   - Livrable : bibliothèque KiCad du projet dans `hardware/kicad/`.
   - Validation : chaque module a son symbole.

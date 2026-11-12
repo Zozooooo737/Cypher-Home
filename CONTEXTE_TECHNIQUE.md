@@ -16,6 +16,7 @@ Voir `DECISIONS.md`, sections « Décidé » et « À valider ou à trancher ».
 - Quantité : 1
 - Datasheet : https://docs.arduino.cc/resources/datasheets/ABX00087-datasheet.pdf
 - Broches : IOREF, RESET, 3.3V, 5V, GND, GND, VIN, A0, A1, A2, A3, A4, A5, D0 (RX), D1 (TX), D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D13, GND, AREF, SDA, SCL
+- Correspondance avec le symbole KiCad (ARDUINO R4 WIFI) : 3.3V = +3V3 ; 5V = +5V ; GND = GND_JA6, GND_JA7, GND_JD15, GND_JO2 (le symbole a 4 GND) ; RESET = ~{RESET} ; A0 à A5 = A0/D14 à A5/D19 ; D0 (RX) = D0/RX0 ; D1 (TX) = D1/TX0 ; D10 = D10/CS/CANTX0 ; D11 = D11/COPI ; D12 = D12/CIPO ; D13 = D13/SCK/CANRX0 ; SDA = D18/SDA ; SCL = D19/SCL (A4/D18 et D18/SDA seraient le même signal [H] à confirmer dans la datasheet). Broches du symbole non listées ci-dessus, non utilisées : BOOT, OFF, VBATT/VRTC.
 
 ### 3.2 Capteur environnemental : BME680
 - Quantité : 1
@@ -41,6 +42,7 @@ Voir `DECISIONS.md`, sections « Décidé » et « À valider ou à trancher ».
 - Quantité : 1
 - Type : LED 5 mm classique, 2 pattes
 - Broches : Anode (+), Cathode (−)
+- Correspondance avec le symbole KiCad LED : Anode (+) = A (broche 2), Cathode (−) = K (broche 1).
 
 ### 3.5 LED bleue (réf. LED5BT)
 - Quantité : 1
@@ -100,11 +102,13 @@ Voir `DECISIONS.md`, sections « Décidé » et « À valider ou à trancher ».
   - Solar Panel IN (2 pads : + et −)
   - Regulated 3.3V Output (2 pads : + et −)
   - USB Charge IN
+- Correspondance avec les symboles KiCad : cellule (AK50X50) : pin+ et pin- identiques. Module (DFR0579) : Solar Panel IN (+ et −) = VCC (numéro +) et GND (numéro -) ; 3.7V Li Battery IN, connecteur JST = + et - (numéros JST+ / JST-) et pads = + et - (numéros BAT+ / BAT-) [H] attribution déduite du dessin du symbole, à confirmer sur le module ; Regulated 3.3V Output (+ et −) = VCC (OUT+) / GND (OUT-). USB Charge IN : absente du symbole.
 
 ### 3.15 Batterie LiPo : AFTERTECH 3,7 V, 5 000 mAh, BMS
 - Quantité : 1
 - Connecteur : JST PHR-02
 - Broches : JST OUT
+- Correspondance avec le symbole KiCad : JST OUT = JST_OUT_+ (numéro BAT+) et JST_OUT_- (numéro BAT-). Polarité réelle du connecteur à vérifier en P11.1.
 
 ### 3.16 Registre à décalage : 74HC595
 - Quantité : 1
