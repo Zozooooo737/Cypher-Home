@@ -12,7 +12,8 @@
 | [ST] | constaté avec `self_test_run()` (fiche `docs/tests/<composant>.md`) |
 | [MES] | mesuré au multimètre par l'étudiant (fiche du composant) |
 | [CALC] | calculé à partir des valeurs ci-dessus (calcul donné) |
-| [pins.h] | câblage courant, provisoire (D3) |
+| [pins.h] | câblage courant (`pins.h`, conforme à la table D3) |
+| [SCH] | schéma KiCad, connexions lues dans la netlist exportée par `kicad-cli` |
 | [H] | hypothèse, non vérifiée |
 
 Documents lus : datasheet de l'UNO R4 WiFi (ABX00087), page docs.arducam.com du Mini 5MP Plus, manuel Joy-IT SEN-BME680, fiches Handsontec du MQ-2 et du buzzer passif, datasheet Philips du 74HC595. Non lisibles : PDF B0068 (image sans texte), page produit arducam.com (accès refusé), datasheet ST7735S de buydisplay.com (accès refusé), notice du module écran sur Scribd (contenu non accessible).
@@ -28,10 +29,10 @@ Documents lus : datasheet de l'UNO R4 WiFi (ABX00087), page docs.arducam.com du 
 | Capteur de gaz MQ-2 | VCC sur 5V [ÉT, pins.h] ; « Power Supply: 5VDC » [DS] | A0 analogique : 0,41 à 2,83 V mesurés, dans la plage de l'ADC (référence 5 V) [MES]. La fiche annonce « 0.1 ~ 0.3 V » [DS], contredit par la mesure. D0 TTL 0 / 5 V [DS], non connectée | « Working Current: ~150mA » (chauffage compris) [DS] | Analogique | Sans objet : A0 [pins.h] | Handsontec MDU-1027 ; `mq2.md` |
 | Buzzer passif SVM06N | V+ sur 5V [ÉT, `buzzer.md`] ; « Operation Voltage: 3~5V » [DS] | Signal carré 5 V produit par D0 avec `tone()` ; fonctionne [ST, à l'oreille] | Non trouvé : à mesurer en P1.7 (absent de la fiche Handsontec), y compris le courant tiré par Signal sur D0 | GPIO | Sans objet : Signal sur D0 [pins.h] | Handsontec MDU1126 ; `buzzer.md` |
 | Boutons ×5 (pattes A1, A2, B1, B2) | Aucune : A1 sur la broche de la carte, B2 à GND ; A2 et B1 non câblées [ÉT] | 5 V par la résistance de tirage interne (`INPUT_PULLUP`) ; relâché = HIGH, appuyé = LOW [ST] | Seulement bouton appuyé ; valeur de la résistance de tirage interne non trouvée (absente de la datasheet de la carte) : à mesurer en P1.7 | GPIO en entrée | Sans objet : D2 centre, D3 droite, D4 gauche, D5 haut, D6 bas [pins.h] | `buttons.md` ; `pins.h` |
-| Interrupteur DS12A | Non câblé, hors périmètre de P1.6 : traité avant P3.2 (D10), avec SunFlower et batterie. 6 A / 250 Vac, 10 A / 24 Vac (charge résistive), 3 A (charge inductive) | Sans objet (coupe l'alimentation) | Sans objet (ne consomme pas) | Aucun | Sans objet : Borne 1, Borne 2 (2 bornes selon l'étudiant, à confirmer au test de continuité) | `CONTEXTE_TECHNIQUE.md` §3.11 ; [ÉT] |
-| Écran TFT ST7735S 1,8″ (DollaTek) | VCC et BLK sur 3.3V [ÉT, pins.h] (régulateur 3,3 V de la carte) | Module 3,3 V : SCL, SDA, RES, DC, CS ramenés de 5 V à 5 × 2 / 3 = 3,33 V par diviseurs [CALC] ; aucun composant chaud [ÉT] | Non trouvé : à mesurer en P1.7 (datasheet ST7735S et notice du module non accessibles) | SPI mode 0 sans MISO, partagé avec la caméra, 4 MHz après l'initialisation (`config.h`) | CS : D7 ; RES : D8 ; DC : D9 [pins.h] | `display.md` ; `pins.h` |
+| Interrupteur DS12A | Hors schéma : réservé au mode batterie (P11), D10 tranchée. 6 A / 250 Vac, 10 A / 24 Vac (charge résistive), 3 A (charge inductive) | Sans objet (coupe l'alimentation) | Sans objet (ne consomme pas) | Aucun | Sans objet : Borne 1, Borne 2, reliées sur ON et ouvertes sur OFF (test de continuité des 2026-11-12 et 2026-11-13) [ÉT] | `CONTEXTE_TECHNIQUE.md` §3.11 ; [ÉT] |
+| Écran TFT ST7735S 1,8″ (DollaTek) | VCC et BLK sur 3.3V [ÉT, pins.h] (régulateur 3,3 V de la carte) | Module 3,3 V : SCL, SDA, RES, DC, CS reliés directement aux broches 5 V de la carte, sans adaptation [ÉT] ; niveau réel non mesuré ; aucun composant chaud [ÉT] | Non trouvé : à mesurer en P1.7 (datasheet ST7735S et notice du module non accessibles) | SPI mode 0 sans MISO, partagé avec la caméra, 4 MHz après l'initialisation (`config.h`) | CS : D7 ; RES : D8 ; DC : D9 [pins.h] | `display.md` ; `pins.h` |
 | Registre à décalage 74HC595 | VCC 2,0 à 6,0 V [DS] ; branché sur 5V d'après `pins.h` (« à confirmer », VCC non renseigné dans `74hc595.md`) | Entrées : VIH ≥ 3,15 V à VCC = 4,5 V [DS] : commande en 5 V correcte ; fonctionne (bonnes LED allumées) [ST, à l'œil] | Repos ≤ 80 µA ; ±35 mA max par sortie Qn ; ±70 mA max par VCC ou GND ; 500 mW max [DS] | GPIO, `shiftOut()` logiciel (pas le SPI matériel) | Sans objet : SER A1, RCLK A2, SRCLK A3 [pins.h] | Datasheet Philips 74HC595 (Limiting values, DC characteristics) |
-| Résistances : 4 × 270 Ω (LED) et 5 diviseurs 1 kΩ / 2 kΩ (écran) | Diviseurs entre une broche de la carte (5 V) et GND | Sortie des diviseurs : 3,33 V [CALC] | Diviseur : 5 V / 3 kΩ = 1,67 mA quand le signal est HIGH, 8,3 mA au plus pour les 5 [CALC] ; 270 Ω : voir LED | Sans objet | Sans objet | `CONTEXTE_TECHNIQUE.md` §3.17 |
+| Résistances : 4 × 270 Ω (LED) | Sans objet | Sans objet | Voir LED | Sans objet | Sans objet | `CONTEXTE_TECHNIQUE.md` §3.17 |
 | Batterie LiPo AFTERTECH 3,7 V 5 000 mAh (BMS) | 3,7 V nominal, connecteur JST PHR-02 | BONUS, non testé (P11) | BONUS, non testé (P11) | BONUS, non testé (P11) | Sans objet | `CONTEXTE_TECHNIQUE.md` §3.15 |
 | SunFlower DFR0579 et cellule 2 V / 160 mA | Entrées batterie 3,7 V, panneau solaire, USB ; sortie régulée 3,3 V | BONUS, non testé (P11) | Cellule : 160 mA ; reste : BONUS, non testé (P11) | BONUS, non testé (P11) | Sans objet | `CONTEXTE_TECHNIQUE.md` §3.14 |
 | Convertisseur Step-Up 2–24 V vers 5–28 V | Entrée 2 à 24 V, sortie 5 à 28 V | BONUS, non testé (P11) | BONUS, non testé (P11) | BONUS, non testé (P11) | Sans objet | `CONTEXTE_TECHNIQUE.md` §3.13 |
@@ -40,9 +41,9 @@ Documents lus : datasheet de l'UNO R4 WiFi (ABX00087), page docs.arducam.com du 
 
 | # | Conflit ou risque | Solution |
 |---|---|---|
-| C1 | Bus SPI partagé caméra / écran : un périphérique dont le CS est à LOW reçoit les échanges destinés à l'autre. Les diviseurs tirent le CS de l'écran à LOW tant que D7 n'est pas configurée. | Un CS par périphérique (D10 caméra, D7 écran) ; les deux CS mis à HIGH au tout début de `setup()`, avant tout `<composant>_setup()` (en place, `display.md`). Entre `camera_read_begin()` et `camera_read_end()`, le bus est réservé à la caméra. |
-| C2 | Les diviseurs 1 kΩ / 2 kΩ de l'écran chargent SCK (D13) et MOSI (D11), communs avec la caméra. | Charge continue : 1,67 mA par ligne au niveau HIGH [CALC], sous la limite de 8 mA par GPIO [DS] ; MISO (D12) n'est pas relié à l'écran. D13 commande aussi la LED intégrée (courant non trouvé). Effet sur les fronts à 4 MHz non chiffré (capacités d'entrée non trouvées) [H : négligeable]. Avant `SPI.begin()`, les diviseurs tirent SCK et MOSI à LOW : sans effet en mode 0 (horloge au repos à LOW). À vérifier en P1.7 : photo valide pendant que l'écran est branché et affiche. Repli : réduire la fréquence SPI (`config.h`). |
-| C3 | Écran en 3,3 V, carte en 5 V. | Diviseurs sur SCL, SDA, RES, DC, CS : 3,33 V [CALC] ; VCC et BLK sur 3.3V ; aucun composant chaud [ÉT]. |
+| C1 | Bus SPI partagé caméra / écran : un périphérique dont le CS est à LOW reçoit les échanges destinés à l'autre. Le CS de l'écran est flottant tant que D7 n'est pas configurée. | Un CS par périphérique (D10 caméra, D7 écran) ; les deux CS mis à HIGH au tout début de `setup()`, avant tout `<composant>_setup()` (en place, `display.md`). Entre `camera_read_begin()` et `camera_read_end()`, le bus est réservé à la caméra. |
+| C2 | L'écran partage SCK (D13) et MOSI (D11) avec la caméra. | MISO (D12) n'est pas relié à l'écran. Vérifié en P1.7 : photos valides pendant que l'écran est branché et affiche [ST]. Repli : réduire la fréquence SPI (`config.h`). |
+| C3 | Écran en 3,3 V, carte en 5 V. | Risque accepté (choix de l'étudiant, D3) : SCL, SDA, RES, DC, CS reliés directement ; 4,57 V mesurés sur CS [MES], au-dessus de la limite absolue VDDI + 0,3 V [DS, ST7735S p. 28] sauf circuit tampon sur le module [H] ; écran fonctionnel sur des essais de plusieurs heures [ST] ; VCC et BLK sur 3.3V ; aucun composant chaud [ÉT]. Repli : diviseurs 1 kΩ / 2 kΩ. |
 | C4 | La bibliothèque de l'écran envoie son initialisation à sa vitesse par défaut (32 MHz demandés, `display.md`), au-delà des 8 MHz max de la caméra [DS]. | Sans effet sur la caméra : son CS est à HIGH pendant l'initialisation de l'écran (C1). L'écran fonctionne malgré cette vitesse [ÉT]. |
 | C5 | Bus I2C partagé caméra / BME680. | Adresses distinctes : 0x3C (caméra) et 0x76 (BME680) [DS, code] : aucun conflit d'adresse. Niveau du bus au repos : 4,57 V [MES], accepté par les deux (caméra tolérante 5 V [DS] ; BME680 d'après le schéma du manuel). Résistances de rappel des deux modules en parallèle : valeurs non trouvées [H : sans effet, les deux composants répondent]. À confirmer en P1.7 : caméra et BME680 lus dans la même passe. |
 | C6 | SDA et SCL sont reliées à A4 et A5 [DS]. | A4 et A5 ne sont pas utilisées en analogique (`pins.h`) ; MQ-2 sur A0, 74HC595 sur A1 à A3. |
@@ -63,7 +64,6 @@ Indication de l'étudiant : la plupart des composants alimentés par le 5 V de l
 | Caméra OV5642 | 300 mA (20 mA en basse consommation) | [DS] docs.arducam.com |
 | MQ-2 (chauffage compris) | environ 150 mA | [DS] Handsontec |
 | LED ×4 (via 74HC595) | 74 mA au plus (borne haute) | [CALC] |
-| Diviseurs de l'écran (fournis par les broches de la carte) | 8,3 mA au plus | [CALC] |
 | 74HC595 au repos | 0,08 mA au plus | [DS] Philips |
 | BME680 | Non trouvé : à mesurer en P1.7 | — |
 | Buzzer | Non trouvé : à mesurer en P1.7 | — |
@@ -74,7 +74,42 @@ Indication de l'étudiant : la plupart des composants alimentés par le 5 V de l
 - Limite USB : la datasheet de la carte impose au plus 5 V sur l'USB-C, sans courant maximal. Un port USB 2.0 de PC fournit normalement 500 mA (900 mA en USB 3.x) : norme USB, pas une donnée de la carte, à vérifier sur le PC utilisé. Avec le total des datasheets (plus de 450 mA, carte non comptée), la marge sous 500 mA est faible ou nulle.
 - Mesure réelle : prévue en P1.7 (multimètre en série sur l'alimentation, tous les modules actifs, caméra en capture, Wi-Fi actif si possible).
 
+## Revue du schéma (P3.2)
+
+Revue du 2026-11-13 : schéma `hardware/kicad/cypher-home.kicad_sch` (export `hardware/kicad/cypher-home.pdf`) comparé ligne par ligne à la matrice et aux conflits ci-dessus. Connexions lues dans la netlist exportée par `kicad-cli` [SCH] : les 89 broches câblées correspondent à la table D3 de `DECISIONS.md`, 28 broches non connectées (marquées), ERC sans erreur (8 avertissements : 7 empreintes non terminées, 1 SDO du BME680 relié à GND, voulu).
+
+| Ligne de la matrice | Dans le schéma [SCH] | Verdict |
+|---|---|---|
+| Carte UNO R4 WiFi | 5V et 3.3V fournis par la carte (PWR_FLAG) ; SPI sur D11, D12, D13 ; I2C sur D18/SDA et D19/SCL ; A4/D18 et A5/D19 non connectées | Conforme |
+| BME680 | VIN sur 5V ; SCK sur I2C_SCL, SDI sur I2C_SDA ; SDO à GND (0x76) ; 3Vo et CS non connectées | Conforme |
+| Caméra OV5642 | VCC sur 5V ; CS sur D10 ; MOSI, MISO, SCK sur le bus SPI ; SDA, SCL sur le bus I2C | Conforme |
+| LED ×4 | QB, QC, QD, QE → 270 Ω → anode ; cathodes à GND (rouge, bleue, jaune, orange) | Conforme |
+| MQ-2 | VCC sur 5V ; A0 sur A0 ; D0 non connectée | Conforme |
+| Buzzer SVM06N | V+ sur 5V ; Signal sur D0 | Conforme |
+| Boutons ×5 | A1 sur D2 (centre), D3 (droite), D4 (gauche), D5 (haut), D6 (bas) ; B2 à GND ; A2 et B1 non connectées | Conforme |
+| Interrupteur DS12A | Absent : réservé au mode batterie (D10) | Conforme à D10 |
+| Écran ST7735S | VCC et BLK sur 3.3V ; SCL sur SPI_SCK, SDA sur SPI_MOSI, sans MISO ; CS D7, RES D8, DC D9, reliés directement | Conforme (risque accepté, C3) |
+| 74HC595 | VCC et SRCLR sur 5V ; OE à GND ; SER A1, RCLK A2, SRCLK A3 | Conforme ; VCC sur 5V à confirmer au câblage (P3.3) |
+| Résistances 270 Ω | Une en série avec chaque LED | Conforme |
+| LiPo, SunFlower, convertisseur | Absents (BONUS, P11) | Conforme |
+
+| Conflit | Dans le schéma [SCH] | Verdict |
+|---|---|---|
+| C1 | CS distincts : CAMERA_CS (D10), DISPLAY_CS (D7) ; mise à HIGH au début de `setup()` : firmware | Conforme |
+| C2 | L'écran n'est relié qu'à SPI_SCK et SPI_MOSI | Conforme |
+| C3 | Signaux de l'écran reliés directement | Risque accepté (choix de l'étudiant, D3) |
+| C4, C7, C13 | Réglages du firmware, sans effet sur le schéma | Sans objet |
+| C5 | Caméra et BME680 sur le même bus I2C, SDO du BME680 à GND (0x76) | Conforme |
+| C6 | A4/D18 et A5/D19 non connectées | Conforme |
+| C8 | Signal du buzzer relié directement à D0, sans résistance | Inchangé : courant à mesurer |
+| C9 | 270 Ω par LED | Inchangé : courant à mesurer |
+| C10 | Écran sur le 3.3V de la carte | Inchangé : courant à mesurer |
+| C11 | Caméra, MQ-2, BME680, buzzer, 74HC595 sur le 5V de la carte | Inchangé : courant total à mesurer (fin de projet) |
+| C12 | SPI_SCK sur D13 (LED intégrée) | Conforme |
+
+Résultat : aucun écart entre le schéma et la matrice. Réserves : VCC du 74HC595 à confirmer au câblage ; courants non mesurés (C8 à C11) ; signaux 5 V de l'écran (C3).
+
 ## À collecter pour le compte rendu
 
-- Datasheet ST7735S et notice du module écran (non accessibles en ligne) : à copier dans `hardware/datasheets/` si l'étudiant les a.
+- Notice du module écran (non accessible en ligne) : à copier dans `hardware/datasheets/` si l'étudiant l'a (datasheet ST7735S copiée le 2026-11-13).
 - Mesures de P1.7 : courant total, courant de l'écran, du BME680, du buzzer (Signal sur D0), des 4 LED allumées, niveau haut de MISO.
