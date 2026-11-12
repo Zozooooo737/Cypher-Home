@@ -75,12 +75,12 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Dépend de : P0.2.
 - [x] **P1.4 Écran ST7735S** (IMPORTANT)
   - Objectif : afficher texte et couleurs.
-  - Tâches : câbler en tenant compte du 3,3 V ; déterminer si une adaptation de niveaux est nécessaire sur SCL/SDA/RES/DC/CS ; câbler BLK. Adaptation retenue : diviseurs 1 kOhm / 2 kOhm sur les 5 signaux ; VCC et BLK sur 3.3V.
+  - Tâches : câbler en tenant compte du 3,3 V ; déterminer si une adaptation de niveaux est nécessaire sur SCL/SDA/RES/DC/CS ; câbler BLK. Aucune adaptation : les 5 signaux sont reliés directement à la carte (niveau 5 V à mesurer, remarque de D3 dans DECISIONS.md) ; VCC et BLK sur 3.3V.
   - Livrable : module `components/display` + fiche.
   - Validation : affichage correct, aucun composant chaud.
   - Dépend de : P0.2.
 - [x] **P1.5 LED, buzzer, boutons, interrupteur DS12A** (ESSENTIEL : buzzer et interrupteur ; IMPORTANT : LED et boutons)
-  - Note : DS12A : test de continuité et fiche non faits, reportés avant P3.2 (décision de l'étudiant, 2026-11-09).
+  - Note : DS12A : test de continuité fait (reliées sur ON le 2026-11-12, ouvertes sur OFF le 2026-11-13) ; fiche non rédigée ; interrupteur réservé au mode batterie (D10).
   - Objectif : valider les entrées/sorties simples.
   - Tâches : calculer les résistances des LED ; buzzer passif avec `tone()` ; boutons en `INPUT_PULLUP` + anti-rebond ; test de continuité des pattes des boutons (4) et du DS12A (3) pour fixer leur nommage dans CONTEXTE_TECHNIQUE.md.
   - Livrable : modules `components/leds`, `buzzer`, `buttons` + fiches (le DS12A a une fiche, sans module) + noms de pattes validés.
@@ -148,8 +148,9 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Livrable : bibliothèque KiCad du projet dans `hardware/kicad/`.
   - Validation : chaque module a son symbole.
   - Dépend de : P1.7.
-- [ ] **P3.2 Schéma complet** (ESSENTIEL)
-  - Tâches : suivre la table de broches validée (D3) ; ajouter résistances, adaptation de niveaux éventuelle, interrupteur.
+- [x] **P3.2 Schéma complet** (ESSENTIEL)
+  - Note : critère atteint le 2026-11-13 (revue ligne par ligne dans `docs/compatibilite.md`, section « Revue du schéma (P3.2) » : aucun écart, réserves : VCC du 74HC595 à confirmer au câblage, courants non mesurés, signaux 5 V de l'écran ; netlist conforme à la table D3, ERC sans erreur) ; export `hardware/kicad/cypher-home.pdf` ; schéma validé par l'étudiant, non câblé (P3.3).
+  - Tâches : suivre la table de broches validée (D3) ; ajouter résistances, adaptation de niveaux éventuelle.
   - Livrable : `hardware/kicad/cypher-home.kicad_sch` + export PDF.
   - Validation : revue ligne par ligne contre la matrice de compatibilité.
   - Dépend de : P3.1, D3, D10.
@@ -248,7 +249,7 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
 ## P11 : Batterie et solaire (BONUS, après P8.3)
 
 - [ ] **P11.1 Vérifications du CC 19.2** : polarité JST, compatibilité BMS / SunFlower, tension du convertisseur réglée à vide avant de le relier à la carte. Livrable : fiche de mesures. Dépend de : P8.3.
-- [ ] **P11.2 Raccordement et mesure de consommation** : puis mesure réelle. Validation : prototype fonctionne sur batterie (critère A20). Dépend de : P11.1, D6.
+- [ ] **P11.2 Raccordement et mesure de consommation** : placer l'interrupteur DS12A (D10) ; puis mesure réelle. Validation : prototype fonctionne sur batterie (critère A20). Dépend de : P11.1, D6.
 
 ---
 

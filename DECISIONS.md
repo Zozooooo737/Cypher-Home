@@ -31,10 +31,12 @@
 - Résolution des photos (D9) : `OV5642_640x480` (`config.h`), retenue d'après P2.5 (`docs/tests/photo_http.md`) : envoi HTTP plafonné vers 10,5 ko/s, carte bloquée pendant l'envoi ; 640x480 : 2,6 à 3,2 s d'envoi, sous la période de mesure de 5 s du CC ; 1024x768 (choix provisoire de P1.1) : 5,3 à 5,9 s ; résolutions supérieures : 7,6 à 28 s.
 - Débit série de test : 460800 bauds (`SERIAL_BAUD` dans `config.h`, à garder égal à `DEFAULT_BAUD` de `serial_monitor.py`). Le plus rapide des trois essayés (115200, 230400, 460800). Canal provisoire de la phase P1, sans lien avec D4.
 - BME680 en I2C (D1) : module Joy-IT SEN-BME680, adresse 0x76 (SDO relié à GND), bus I2C partagé avec la caméra (broches SDA/SCL de la carte). Le bus SPI reste réservé à la caméra et à l'écran. Alimentation VIN sur 5V (câblage du manuel Joy-IT) ; 3Vo et CS non connectés. Bibliothèque Adafruit BME680 2.0.6 (Adafruit BusIO 1.17.4, Adafruit Unified Sensor 1.1.15) via lib_deps ; résistance du gaz brute, sans BSEC (pas d'indice IAQ).
-- MQ-2 (P1.3) : VCC sur 5V, A0 sur A0 (provisoire tant que D3 est ouverte), D0 non connectée. Lecture de A0 par l'ADC en 14 bits (0 à 16383), moyenne de 16 lectures, sans bibliothèque. Préchauffage fixe de 300 s après la mise sous tension (aucune alerte avant). Alerte au-dessus de 3000 sur 2 échantillons consécutifs, fin sous 2500 (`config.h`). Seuil absolu retenu plutôt qu'un seuil relatif à une référence glissante : sur le log du 2026-11-08, la référence était en retard au passage en prêt et l'alerte restait bloquée après le gaz. Valeurs tirées de deux enregistrements du 2026-11-08 ; si l'air normal dérive vers le seuil, plan B : seuil relatif (PLAN.md, risques).
-- Écran ST7735S (P1.4) : bibliothèque Adafruit ST7735 and ST7789 Library 1.12.0 + Adafruit GFX Library 1.13.0 via lib_deps (Adafruit seesaw Library 1.7.9 et SD 1.3.0 figées : déclarées par la bibliothèque, non utilisées). Variante INITR_BLACKTAB (ordre des couleurs correct sur la carte), décalage de 2 colonnes et 1 ligne, rotation 3 (paysage 160x128), réglages dans `config.h`. VCC et BLK sur 3.3V (rétroéclairage toujours allumé). SCL, SDA, RES, DC et CS passent par des diviseurs 1 kOhm / 2 kOhm (5 V -> environ 3,3 V) ; SPI à 4 MHz après l'initialisation (la bibliothèque envoie l'initialisation à sa vitesse par défaut). Bus SPI partagé avec la caméra, CS des deux périphériques à HIGH au début de `setup()`. Broches provisoires tant que D3 est ouverte : CS D7, RES D8, DC D9.
-- LED, boutons, buzzer (P1.5) : 4 LED commandées par un registre à décalage 74HC595 en logiciel (`shiftOut`, MSBFIRST), sans le bus SPI matériel partagé par la caméra et l'écran ; SER A1, RCLK A2, SRCLK A3, OE à GND, SRCLR au 5V ; LED rouge QB (bit 1), bleue QC (bit 2), jaune QD (bit 3), orange QE (bit 4), une résistance de 270 Ω par LED. 5 boutons en `INPUT_PULLUP` (appuyé = LOW), patte A1 sur la broche de la carte et B2 à GND, anti-rebond de 20 ms (`config.h`) : centre D2, droite D3, gauche D4, haut D5, bas D6. Buzzer passif SVM06N sur D0 avec `tone()` (non bloquant dans le cœur Renesas 1.6.0) ; D0 est le RX de `Serial1`, qui ne doit jamais être initialisé. Broches provisoires tant que D3 est ouverte.
+- MQ-2 (P1.3) : VCC sur 5V, A0 sur A0, D0 non connectée. Lecture de A0 par l'ADC en 14 bits (0 à 16383), moyenne de 16 lectures, sans bibliothèque. Préchauffage fixe de 300 s après la mise sous tension (aucune alerte avant). Alerte au-dessus de 3000 sur 2 échantillons consécutifs, fin sous 2500 (`config.h`). Seuil absolu retenu plutôt qu'un seuil relatif à une référence glissante : sur le log du 2026-11-08, la référence était en retard au passage en prêt et l'alerte restait bloquée après le gaz. Valeurs tirées de deux enregistrements du 2026-11-08 ; si l'air normal dérive vers le seuil, plan B : seuil relatif (PLAN.md, risques).
+- Écran ST7735S (P1.4) : bibliothèque Adafruit ST7735 and ST7789 Library 1.12.0 + Adafruit GFX Library 1.13.0 via lib_deps (Adafruit seesaw Library 1.7.9 et SD 1.3.0 figées : déclarées par la bibliothèque, non utilisées). Variante INITR_BLACKTAB (ordre des couleurs correct sur la carte), décalage de 2 colonnes et 1 ligne, rotation 3 (paysage 160x128), réglages dans `config.h`. VCC et BLK sur 3.3V (rétroéclairage toujours allumé). SCL, SDA, RES, DC et CS reliés directement à la carte, sans adaptation de niveaux (choix de l'étudiant, voir la remarque de D3) ; SPI à 4 MHz après l'initialisation (la bibliothèque envoie l'initialisation à sa vitesse par défaut). Bus SPI partagé avec la caméra, CS des deux périphériques à HIGH au début de `setup()`. Broches (D3) : CS D7, RES D8, DC D9.
+- LED, boutons, buzzer (P1.5) : 4 LED commandées par un registre à décalage 74HC595 en logiciel (`shiftOut`, MSBFIRST), sans le bus SPI matériel partagé par la caméra et l'écran ; SER A1, RCLK A2, SRCLK A3, OE à GND, SRCLR au 5V ; LED rouge QB (bit 1), bleue QC (bit 2), jaune QD (bit 3), orange QE (bit 4), une résistance de 270 Ω par LED. 5 boutons en `INPUT_PULLUP` (appuyé = LOW), patte A1 sur la broche de la carte et B2 à GND, anti-rebond de 20 ms (`config.h`) : centre D2, droite D3, gauche D4, haut D5, bas D6. Buzzer passif SVM06N sur D0 avec `tone()` (non bloquant dans le cœur Renesas 1.6.0) ; D0 est le RX de `Serial1`, qui ne doit jamais être initialisé.
 - Bibliothèque KiCad (P3.1) : hardware/kicad/CypherHome.kicad_sym, bibliothèque spécifique au projet, 15 symboles (un par composant ; LED partagée par les 4 LED, BUTTON par les 5 boutons, R 270 pour les résistances ; AK50X50 = cellule et DFR0579 = module de la SunFlower). Le symbole de la carte a les noms de broches de son modèle d'origine ; correspondances dans CONTEXTE_TECHNIQUE.md. Limites : empreintes non terminées ; plusieurs champs Footprint contiennent du texte libre ou une empreinte absente du projet (Registre, Solaire, Alimentation, LIPO 3,7 V 5000 mAh, 1825910-3:TE_1825910-3, ABX00087:MODULE_ABX00087), avertissements ERC attendus en P3.2 ; broche USB Charge IN absente du symbole DFR0579.
+- Interrupteur général (D10) : aucun interrupteur en mode USB-C (le prototype s'éteint en débranchant le câble) ; le DS12A est réservé au mode batterie (P11, BONUS), position exacte à fixer avec D6. Continuité du DS12A vérifiée : Borne 1 et Borne 2 reliées sur ON (2026-11-12), aucune continuité sur OFF (2026-11-13).
+- Schéma de câblage (P3.2) : `hardware/kicad/cypher-home.kicad_sch` (une feuille A4) et son export `hardware/kicad/cypher-home.pdf` ; connexions par étiquettes aux noms de `pins.h` (bus : I2C_SDA, I2C_SCL, SPI_MOSI, SPI_MISO, SPI_SCK) ; symboles d'alimentation +5V, +3V3, GND de la bibliothèque standard de KiCad, avec PWR_FLAG (5V et 3.3V fournis par la carte) ; hors schéma : DS12A, LiPo, SunFlower, convertisseur (P11). Revue contre la matrice : `docs/compatibilite.md`.
 
 ### Réseau et serveur
 - Serveur et base hébergés en local sur le PC. Le serveur écoute sur `0.0.0.0` ; dashboard à `http://IP_DU_PC:port`, accessible depuis PC et iPhone. Prévoir le pare-feu Windows et le profil réseau privé.
@@ -50,7 +52,7 @@
 - `PLAN.md` fait référence pour l'ordre des étapes (Px.x).
 - Dépôt Git unique à la racine de `CypherHome`, hébergé sur GitHub (visibilité : privé). Convention de commits : voir `docs/CONVENTION_COMMITS.md`.
 - Structure du firmware : pas de dossier `tests/`. Un module par composant dans `firmware/src/components/` (`<composant>.h/.cpp` ; noms de fichiers, fonctions et variables en anglais) avec `<composant>_setup()`, les fonctions principales réutilisées par le firmware final et `<composant>_test()`. `firmware/src/self_test.cpp` enchaîne les tests validés (`self_test_run()`) : appelée dans `loop()` pendant le développement, dans `setup()` (une fois) dans la version finale.
-- Broches et paramètres : `firmware/include/pins.h` (un bloc par composant listant toutes ses broches, celles sans définition en commentaire, index des broches de la carte en tête ; provisoire tant que D3 est ouverte) et `firmware/include/config.h` (`constexpr`, valeurs par défaut utiles au produit, ajoutées quand le code les utilise, modifiables plus tard depuis le dashboard). Les valeurs propres aux tests restent des constantes locales du `.cpp`. `firmware/include/secrets.h` (ignoré par Git, avec un `secrets.example.h` versionné) est créé au premier secret.
+- Broches et paramètres : `firmware/include/pins.h` (un bloc par composant listant toutes ses broches, celles sans définition en commentaire, index des broches de la carte en tête ; conforme à la table D3) et `firmware/include/config.h` (`constexpr`, valeurs par défaut utiles au produit, ajoutées quand le code les utilise, modifiables plus tard depuis le dashboard). Les valeurs propres aux tests restent des constantes locales du `.cpp`. `firmware/include/secrets.h` (ignoré par Git, avec un `secrets.example.h` versionné) est créé au premier secret.
 - Sortie série : un script Python unique, `firmware/scripts/serial_monitor.py`, remplace le moniteur PlatformIO ; il affiche le texte et enregistre les images dans `firmware/output/` (ignoré par Git). En phase P1, les images passent par le port USB : transport provisoire de test, sans lien avec D4. Un `.venv` par dossier Python (`firmware/scripts/`, `server/`).
 - Fiches de test : une par composant dans `docs/tests/` (modèle `_modele.md`), une page, sans code, rédigées après validation. La fiche garde le câblage testé (daté), `pins.h` le câblage courant, la table D3 validée fait foi.
 - Mesures de courant : reportées à la fin du projet (courant total, P1.7) ; la matrice P1.6 utilise les valeurs des datasheets.
@@ -62,7 +64,58 @@
 - Documentation : `docs/tests/` = fiches de test d'une page sans code ; `docs/cours/` = cours et rapports longs de l'étudiant, avec explications (un fichier par sujet). Pour MQTT, le cours `docs/cours/mqtt.md` tient lieu de fiche.
 
 ### Affectation des broches (D3)
-(à compléter après validation)
+Validée par l'étudiant le 2026-11-12, d'après `firmware/include/pins.h` et le câblage testé en P1.7 (`docs/tests/essai_ensemble.md`). Noms officiels de `CONTEXTE_TECHNIQUE.md`. Aucune broche utilisée deux fois, hors bus partagés voulus : I2C (SDA, SCL) pour BME680 + caméra, SPI (D11, D13) pour caméra + écran ; CS distincts (D10 caméra, D7 écran).
+
+| Composant | Broche officielle | Broche de la carte | Signal / remarque |
+|---|---|---|---|
+| BME680 | VIN | 5V | alimentation du module |
+| BME680 | GND | GND | |
+| BME680 | SCK | SCL (= A5) | I2C, horloge ; bus partagé avec la caméra |
+| BME680 | SDI | SDA (= A4) | I2C, données ; bus partagé avec la caméra |
+| BME680 | SDO | GND | fixe l'adresse I2C à 0x76 |
+| BME680 | 3Vo, CS | non connectées | |
+| OV5642 | VCC | 5V | environ 300 mA (doc Arducam) |
+| OV5642 | GND | GND | |
+| OV5642 | CS | D10 | SPI, CS de la caméra ; mis à HIGH au début de `setup()` |
+| OV5642 | MOSI | D11 | SPI ; partagé avec l'écran |
+| OV5642 | MISO | D12 | SPI ; caméra seule |
+| OV5642 | SCK | D13 | SPI ; partagé avec l'écran ; D13 commande aussi la LED intégrée |
+| OV5642 | SDA | SDA (= A4) | I2C, adresse 0x3C ; partagé avec le BME680 |
+| OV5642 | SCL | SCL (= A5) | I2C ; partagé avec le BME680 |
+| MQ-2 | VCC | 5V | chauffage compris (environ 150 mA) |
+| MQ-2 | GND | GND | |
+| MQ-2 | A0 | A0 | analogique, ADC 14 bits ; A0 est aussi la sortie DAC (non utilisée) |
+| MQ-2 | D0 | non connectée | |
+| ST7735S | VCC | 3.3V | régulateur 3,3 V de la carte, partagé avec l'ESP32-S3 |
+| ST7735S | GND | GND | |
+| ST7735S | SCL | D13 | SPI SCK, relié directement ; partagé avec la caméra |
+| ST7735S | SDA | D11 | SPI MOSI, relié directement ; partagé avec la caméra |
+| ST7735S | RES | D8 | relié directement |
+| ST7735S | DC | D9 | relié directement |
+| ST7735S | CS | D7 | CS de l'écran, relié directement ; mis à HIGH au début de `setup()` |
+| ST7735S | BLK | 3.3V | rétroéclairage toujours allumé |
+| ST7735S | SCL, SDA, RES, DC, CS | D13, D11, D8, D9, D7 | **Remarque** : signaux 5 V directs (4,57 V mesurés sur CS le 2026-11-12), au-dessus de la limite absolue VDDI + 0,3 V de la datasheet ST7735S (`hardware/datasheets/ST7735S.pdf`, p. 28) si le module n'a pas de circuit tampon [H] ; aucun diviseur : choix de l'étudiant, écran fonctionnel sur des essais de plusieurs heures |
+| 74HC595 | VCC | 5V | d'après `pins.h` ; à confirmer (`essai_ensemble.md`, `74hc595.md`) |
+| 74HC595 | GND | GND | |
+| 74HC595 | SER | A1 | données (`shiftOut`) |
+| 74HC595 | RCLK | A2 | verrouillage des sorties |
+| 74HC595 | SRCLK | A3 | horloge de décalage |
+| 74HC595 | OE | GND | sorties toujours actives |
+| 74HC595 | SRCLR | 5V | registre jamais remis à zéro |
+| 74HC595 | QB, QC, QD, QE | aucune | LED rouge, bleue, jaune, orange (bits 1 à 4), chacune en série avec 270 Ω vers GND |
+| 74HC595 | QA, QF, QG, QH, QH' | non connectées | |
+| Boutons | A1 (centre) | D2 | `INPUT_PULLUP`, appuyé = LOW ; validation du PIN |
+| Boutons | A1 (droite) | D3 | `INPUT_PULLUP` |
+| Boutons | A1 (gauche) | D4 | `INPUT_PULLUP` |
+| Boutons | A1 (haut) | D5 | `INPUT_PULLUP` |
+| Boutons | A1 (bas) | D6 | `INPUT_PULLUP` |
+| Boutons | B2 (×5) | GND | A2 et B1 non câblées |
+| SVM06N (buzzer) | Signal | D0 | `tone()` ; D0 est le RX de `Serial1`, jamais initialisé |
+| SVM06N (buzzer) | V+ | 5V | |
+| SVM06N (buzzer) | GND | GND | |
+
+- Libres : D1 (TX de `Serial1`), A4 et A5 en analogique (occupées par SDA et SCL), connecteur Qwiic (`Wire1`, 3,3 V). Le Wi-Fi passe par l'ESP32-S3 interne, sans broche des connecteurs.
+- Hors table : interrupteur DS12A et chemin d'alimentation (D10), batterie et solaire (D6).
 
 ### Modèle de données (D7)
 (à compléter après validation : base retenue, puis entités et attributs)
@@ -70,14 +123,12 @@
 ## À valider ou à trancher
 Décisions ouvertes uniquement. Une fois tranchée, la ligne est retirée d'ici et consignée dans « Décidé » avec son identifiant. L'étape qui dépend de chaque décision est indiquée dans `PLAN.md` (« Dépend de »).
 
-| #   | Décision                                                                       | Options et proposition actuelle                                                                        |
-| --- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| D3  | Affectation des broches de la carte                                            | Table proposée après l'essai d'ensemble sur breadboard (P1.7), à partir de `pins.h` ; à valider.       |
-| D4  | Communication carte-serveur                                                    | Proposé : MQTT (mesures) + HTTP (photos). Repli : HTTP partout si MQTT bloque plus d'une demi-journée. |
-| D5  | Framework du dashboard                                                         | NiceGUI ou Streamlit. Comparer rapidement (rendu iPhone, graphiques, sessions), puis trancher.         |
-| D6  | Raccordement du convertisseur à la carte (USB, 5V ou VIN)                      | Non tranché. Uniquement pour le mode batterie (BONUS).                                                 |
-| D7  | Base de données                                                                | Proposé : MongoDB (PyMongo). Structure des données à définir dans PLAN P5.1.                           |
-| D10 | Position de l'interrupteur général DS12A                                       | Proposé : en série sur le +5 V d'un câble USB-A/USB-C coupé (mode USB) ; mode batterie à voir avec D6. À valider. |
+| #   | Décision                                                  | Options et proposition actuelle                                                                                   |
+| --- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| D4  | Communication carte-serveur                               | Proposé : MQTT (mesures) + HTTP (photos). Repli : HTTP partout si MQTT bloque plus d'une demi-journée.            |
+| D5  | Framework du dashboard                                    | NiceGUI ou Streamlit. Comparer rapidement (rendu iPhone, graphiques, sessions), puis trancher.                    |
+| D6  | Raccordement du convertisseur à la carte (USB, 5V ou VIN) | Non tranché. Uniquement pour le mode batterie (BONUS).                                                            |
+| D7  | Base de données                                           | Proposé : MongoDB (PyMongo). Structure des données à définir dans PLAN P5.1.                                      |
 
 ## Tableau des fonctions et d'avancement
 
@@ -112,7 +163,7 @@ Légende
 | En cours | N2   | Voyants LED (rouge, bleue, jaune, orange)                                          | IMPORTANT                                   | Facile, bon retour visuel.                                                   | 4 LED, résistances, F3          | FAIBLE                                                                                    | firmware                                   | P1.5, P6.1             |
 | En cours | N3   | Boutons et menus locaux (navigation, réglages)                                     | IMPORTANT                                   | Contrôle direct sur le prototype.                                            | 5 boutons, N1                   | MOYEN : anti-rebond, interface de menus                                                   | firmware                                   | P1.5, P6.5             |
 | En cours | N4   | Buzzer (retours sonores, alertes)                                                  | ESSENTIEL                                   | Requis par F10 et F12.                                                       | SVM06N                          | FAIBLE                                                                                    | firmware                                   | P1.5, P6.2             |
-| En cours | N5   | Interrupteur général                                                               | ESSENTIEL                                   | Trivial, mais impose un choix de câblage.                                    | DS12A, alimentation             | FAIBLE                                                                                    | matériel                                   | P1.5, P3.2             |
+| En cours | N5   | Interrupteur général                                                               | BONUS                                       | Trivial, mais impose un choix de câblage.                                    | DS12A, alimentation             | FAIBLE                                                                                    | matériel                                   | P1.5, P11.2            |
 | En cours | N6   | Alimentation USB-C                                                                 | ESSENTIEL                                   | Mode sûr, mode principal du CC.                                              | carte                           | FAIBLE                                                                                    | matériel                                   | P1.7, P3.3             |
 | À faire  | N7   | Alimentation batterie + solaire (A20)                                              | BONUS                                       | Plusieurs modules non testés ; point de raccordement non arrêté.             | LiPo, SunFlower, Step-Up, carte | ÉLEVÉ : tension de sortie du convertisseur, BMS, mesures                                  | matériel                                   | P11.1, P11.2           |
 | À faire  | N8   | Courriel d'alerte (avec image)                                                     | BONUS                                       | Option explicite dans le CC.                                                 | F10, F12, SMTP                  | MOYEN : accès internet, secrets                                                           | serveur                                    | P7.5                   |
@@ -130,7 +181,7 @@ Légende
 - 2026-11-06 : P1.1 terminée : caméra OV5642 fonctionnelle sur la carte, JPEG reçus sur le PC dans les 7 résolutions de 320x240 à 2592x1944, mesures aux trois débits série et photo dans docs/tests/camera.md. D2 tranchée (fork keeeal @ 8b276d3) ; D9 : résolution 1024x768 retenue provisoirement ; débit série de test 460800 bauds.
 - 2026-11-08 : P1.2 terminée : BME680 en I2C (adresse 0x76) fonctionnel, valeurs stables sur 9 passes de self_test_run(), KO d'une ligne vérifié capteur débranché. D1 tranchée (I2C). Mesures de courant reportées à la fin du projet.
 - 2026-11-08 : P1.3 terminée : MQ-2 lu sur A0 (ADC 14 bits) ; air normal entre 1400 et 1550 environ après préchauffage, allumette sous le capteur jusqu'à 8326, briquet jusqu'à 9926 ; préchauffage de 300 s et seuil d'alerte 3000 (fin sous 2500) retenus, alerte vérifiée sur la carte avec le briquet ; test MQ-2 ajouté à self_test_run().
-- 2026-11-09 : P1.4 terminée : écran ST7735S fonctionnel en paysage 160x128 (rotation 3), texte et couleurs corrects, fond noir sans pixels parasites après le décalage de 2 colonnes et 1 ligne, aucun composant chaud ; adaptation de niveaux par diviseurs 1 kOhm / 2 kOhm ; test de l'écran ajouté à self_test_run().
+- 2026-11-09 : P1.4 terminée : écran ST7735S fonctionnel en paysage 160x128 (rotation 3), texte et couleurs corrects, fond noir sans pixels parasites après le décalage de 2 colonnes et 1 ligne, aucun composant chaud ; signaux reliés directement à la carte, sans adaptation de niveaux (corrigé le 2026-11-12 : aucun diviseur n'a été câblé) ; test de l'écran ajouté à self_test_run().
 - 2026-11-09 : P1.5 terminée : 4 LED commandées par un 74HC595 (résistances de 270 Ω), 5 boutons et buzzer passif validés sur la carte ; test de continuité des boutons fait (pattes A1 et B2) ; DS12A reporté avant P3.2 (D10) ; tests des trois modules ajoutés à self_test_run().
 - 2026-11-09 : P1.6 terminée : matrice de compatibilité électrique dans docs/compatibilite.md (valeurs des datasheets, sources indiquées, valeurs introuvables à mesurer en P1.7) ; conflits listés avec leur solution ; budget du 5 V à confirmer par la mesure du courant total en P1.7.
 - 2026-11-10 : P1.7 terminée : tous les modules câblés ensemble, 10 passes de self_test_run() (4 min 45 s) sans reset, images valides avec l'écran actif (SPI partagé), BME680 et caméra lus dans la même passe (I2C partagé), mesures affichées à l'écran ; courant total non mesuré ; table d'affectation des broches proposée pour D3 (docs/tests/essai_ensemble.md).
@@ -140,3 +191,7 @@ Légende
 - 2026-11-11 : P2.4 terminée : page de test servie par le PC (`server/test_page_server.py`) affichée sur le PC, sur l'iPhone qui émet le partage et sur un second téléphone connecté au partage, par l'IP du PC et par `<nom du PC>.local` ; changement d'IP non testé.
 - 2026-11-11 : P2.5 terminée : photos JPEG envoyées de la carte au PC en HTTP dans les 7 résolutions, contrôlées par script ; débit d'environ 10,5 ko/s, total médian de 2,9 s (640x480) à 27,8 s (2592x1944) ; échec du premier envoi après un redémarrage expliqué et corrigé (serveur de test multi-fil) ; D9 tranchée : 640x480.
 - 2026-11-12 : P3.1 terminée : bibliothèque de symboles KiCad du projet (15 symboles) dans hardware/kicad/, noms de broches comparés à CONTEXTE_TECHNIQUE.md (lecture de fichier, non testés sur le matériel), correspondances de noms consignées ; empreintes non terminées (hors critère).
+- 2026-11-12 : D3 tranchée : affectation des broches validée (table dans « Affectation des broches (D3) »), identique à `pins.h` et au câblage testé en P1.7 ; écran ST7735S relié directement à la carte, sans diviseur : documentation corrigée (aucun diviseur n'a été câblé), niveau des signaux à mesurer.
+- 2026-11-13 : D10 tranchée : pas d'interrupteur en mode USB-C, DS12A réservé au mode batterie (P11) ; N5 passée en BONUS ; continuité du DS12A vérifiée (reliée sur ON, ouverte sur OFF).
+- 2026-11-13 : écran ST7735S gardé sans diviseur (choix de l'étudiant) : 4,57 V mesurés sur CS, au-dessus de la limite absolue de la datasheet (VDDI + 0,3 V) sauf circuit tampon sur le module [H] ; écran fonctionnel sur des essais de plusieurs heures.
+- 2026-11-13 : P3.2 terminée : schéma de câblage complet dans hardware/kicad/ (A4, export PDF), conforme à la table D3 (netlist vérifiée par kicad-cli, ERC sans erreur) ; revue ligne par ligne contre la matrice de compatibilité sans écart (réserves : VCC du 74HC595, courants non mesurés, écran sans diviseur).
