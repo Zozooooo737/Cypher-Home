@@ -18,7 +18,7 @@ Réserve : essai de 4 min 45 s environ (10 passes) au lieu des 10 min prévues ;
 | Élément | Valeur | Source |
 |---|---|---|
 | Tension d'alimentation | USB-C du PC (5 V) ; modules sur 5V, sauf l'écran sur 3.3V | câblage testé |
-| Niveau logique | 5 V ; écran ramené à 3,3 V par diviseurs 1 kΩ / 2 kΩ | `docs/compatibilite.md` |
+| Niveau logique | 5 V, y compris sur les signaux de l'écran (module 3,3 V, reliés directement, sans diviseur) | câblage testé |
 | Courant total | Non mesuré | — |
 | Démarrage ou préchauffage | MQ-2 : 300 s (`MQ2_PREHEAT_S`) | `config.h` |
 
@@ -34,13 +34,13 @@ Câblage testé le 2026-11-10. Proposition d'affectation soumise à D3 (non vali
 | D4 | Bouton gauche | A1 | GPIO, `INPUT_PULLUP` | |
 | D5 | Bouton haut | A1 | GPIO, `INPUT_PULLUP` | |
 | D6 | Bouton bas | A1 | GPIO, `INPUT_PULLUP` | |
-| D7 | Écran | CS | SPI | diviseur ; mis à HIGH au début de `setup()` |
-| D8 | Écran | RES | GPIO | diviseur |
-| D9 | Écran | DC | GPIO | diviseur |
+| D7 | Écran | CS | SPI | relié directement ; mis à HIGH au début de `setup()` |
+| D8 | Écran | RES | GPIO | relié directement |
+| D9 | Écran | DC | GPIO | relié directement |
 | D10 | Caméra | CS | SPI | mis à HIGH au début de `setup()` |
-| D11 | Caméra / Écran | MOSI / SDA | SPI MOSI | écran par diviseur |
+| D11 | Caméra / Écran | MOSI / SDA | SPI MOSI | écran relié directement |
 | D12 | Caméra | MISO | SPI MISO | écran sans MISO |
-| D13 | Caméra / Écran | SCK / SCL | SPI SCK | écran par diviseur ; LED intégrée de la carte |
+| D13 | Caméra / Écran | SCK / SCL | SPI SCK | écran relié directement ; LED intégrée de la carte |
 | SDA (= A4) | Caméra / BME680 | SDA / SDI | I2C | adresses 0x3C et 0x76 ; A4 inutilisable en analogique |
 | SCL (= A5) | Caméra / BME680 | SCL / SCK | I2C | A5 inutilisable en analogique |
 | A0 | MQ-2 | A0 | analogique 14 bits | aussi sortie DAC (non utilisée) |

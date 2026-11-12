@@ -15,7 +15,7 @@
 | Élément                   | Valeur                                                                 | Source        |
 | ------------------------- | ---------------------------------------------------------------------- | ------------- |
 | Tension d'alimentation    | VCC sur la broche 3.3V de la carte                                     | câblage testé |
-| Niveau logique            | 3,3 V : adaptation nécessaire, la carte sort du 5 V (diviseurs, voir câblage) | module 3,3 V  |
+| Niveau logique            | Module 3,3 V, signaux de la carte en 5 V reliés directement, sans adaptation : niveau à mesurer | module 3,3 V  |
 | Courant                   | Non mesuré : mesure reportée à la fin du projet (courant total, P1.7)  | —             |
 | Démarrage ou préchauffage | N/A                                                                    | —             |
 
@@ -27,15 +27,15 @@ Aucun composant chaud pendant les essais (vérifié au toucher).
 |---|---|---|
 | GND | GND | |
 | VCC | 3.3V | |
-| SCL | D13 | Bus SPI (SCK), partagé avec la caméra ; via diviseur |
-| SDA | D11 | Bus SPI (MOSI), partagé avec la caméra ; via diviseur |
-| RES | D8 | Via diviseur |
-| DC | D9 | Via diviseur |
-| CS | D7 | Via diviseur |
+| SCL | D13 | Bus SPI (SCK), partagé avec la caméra ; relié directement |
+| SDA | D11 | Bus SPI (MOSI), partagé avec la caméra ; relié directement |
+| RES | D8 | Relié directement |
+| DC | D9 | Relié directement |
+| CS | D7 | Relié directement |
 | BLK | 3.3V | Rétroéclairage toujours allumé |
 
 - Bus et adressage : SPI mode 0, CS sur D7 ; MISO (D12) non utilisé par l'écran.
-- Éléments ajoutés : un diviseur par signal (SCL, SDA, RES, DC, CS) : 1 kOhm côté carte, 2 kOhm vers GND ; 5 V × 2 / 3 = environ 3,3 V.
+- Éléments ajoutés : aucun ; signaux 5 V sur un module 3,3 V : 4,57 V mesurés sur CS (2026-11-12), au-dessus de la limite absolue de la datasheet sauf circuit tampon sur le module [H] ; gardé ainsi (choix de l'étudiant, D3).
 - Cette table est le câblage **testé** le 2026-11-09. `pins.h` donne le câblage courant, et la table D3 validée fait foi.
 
 ## Logiciel
@@ -63,7 +63,7 @@ Aucun composant chaud pendant les essais (vérifié au toucher).
 - Avec le décalage 0 et 0 de `INITR_BLACKTAB`, affichage décalé de 1 pixel à gauche et en haut, pixels multicolores sur la dernière colonne et la dernière ligne → décalage de 2 colonnes et 1 ligne (`config.h`).
 - `setColRowStart()` est protégée dans la bibliothèque : une classe interne à `display.cpp` la rend accessible.
 - La bibliothèque envoie la séquence d'initialisation à sa vitesse par défaut (32 MHz demandés), sans réglage possible ; la fréquence de `config.h` ne s'applique qu'après.
-- Les diviseurs tirent CS, DC et RES à LOW tant que les broches ne sont pas configurées : CS de l'écran mis à HIGH au début de `setup()`, sinon l'écran reçoit les échanges SPI de la caméra.
+- CS de l'écran flottant tant que D7 n'est pas configurée : mis à HIGH au début de `setup()`, sinon l'écran peut recevoir les échanges SPI de la caméra.
 - Pas de ligne `[display] KO` : sans MISO, l'absence de l'écran n'est pas détectable.
 - Non testé :
   - courant consommé, dont le rétroéclairage (reporté en P1.7) ;
@@ -72,7 +72,6 @@ Aucun composant chaud pendant les essais (vérifié au toucher).
 
 ## À reporter (si applicable)
 
-- [ ] Valeurs des résistances (diviseurs 1 kOhm / 2 kOhm) → `CONTEXTE_TECHNIQUE.md` § 3.17
 - [x] Décision (bibliothèque, réglages) → `DECISIONS.md`
 - [ ] Ligne du composant → `docs/compatibilite.md` (P1.6)
 - [ ] Éléments pour le compte rendu (P12.1) : photo
