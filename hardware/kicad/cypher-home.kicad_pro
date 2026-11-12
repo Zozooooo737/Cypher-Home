@@ -243,7 +243,7 @@
       "internal_id": "",
       "mfg": "",
       "mpn": "",
-      "sch_revision": ""
+      "sch_revision": "proposition"
     },
     "layer_pairs": [],
     "layer_presets": [],
@@ -469,7 +469,7 @@
       "no_connect_dangling": "warning",
       "pin_not_connected": "error",
       "pin_not_driven": "error",
-      "pin_to_pin": "warning",
+      "pin_to_pin": "error",
       "power_pin_not_driven": "error",
       "same_local_global_label": "warning",
       "same_local_global_power": "warning",
@@ -673,7 +673,7 @@
   "sheets": [
     [
       "f65793cb-d760-4f83-8048-633343e409c6",
-      "CypherHome_SchémaElectronique"
+      "cypher-home"
     ]
   ],
   "text_variables": {},
