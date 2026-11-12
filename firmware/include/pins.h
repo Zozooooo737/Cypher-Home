@@ -3,13 +3,13 @@
 
 // Broches de la carte Arduino UNO R4 WiFi : câblage courant.
 // Un bloc par composant, avec les noms officiels de CONTEXTE_TECHNIQUE.md.
-// Tant que D3 est ouverte (DECISIONS.md), les numéros sont provisoires et
-// chaque affectation est validée par l'étudiant avant câblage.
+// Affectation validée (D3, DECISIONS.md) : tout changement est validé par
+// l'étudiant avant câblage.
 // Aucun numéro de broche en dur dans les modules : tout vient d'ici.
 
 // ---------------------------------------------------------------------------
 // Index des broches de la carte (une ligne par broche, ex. « D10 : CAMERA_CS »)
-// Sert à repérer les doublons et à préparer D3.
+// Sert à repérer les doublons.
 // ---------------------------------------------------------------------------
 // D0         : BUZZER_SIGNAL ; aussi le RX de Serial1 (non utilisé)
 // D2         : BUTTONS_CENTER
@@ -34,7 +34,6 @@
 
 // ---------------------------------------------------------------------------
 // Caméra ArduCAM Mini 5MP Plus, OV5642 (CONTEXTE_TECHNIQUE.md, § 3.3)
-// Provisoire tant que D3 est ouverte.
 // Bus : SPI mode 0 (registres et tampon image) + I2C (capteur, adresse 0x78/0x79,
 // soit 0x3C sur 7 bits). Entrées/sorties tolérantes 5 V : pas de convertisseur.
 // Broche officielle -> broche de la carte
@@ -50,7 +49,7 @@ constexpr uint8_t CAMERA_CS_PIN = 10;
 
 // ---------------------------------------------------------------------------
 // Capteur environnemental BME680, module Joy-IT SEN-BME680 (CONTEXTE_TECHNIQUE.md, § 3.2)
-// Provisoire tant que D3 est ouverte ; bus I2C (D1 tranchée).
+// Bus I2C (D1 tranchée).
 // Bus : I2C partagé avec la caméra, adresse 0x76 (BME680_I2C_ADDRESS dans config.h).
 // Aucune broche à définir dans le code : bus I2C imposé par la carte.
 // Broche officielle -> broche de la carte
@@ -64,7 +63,6 @@ constexpr uint8_t CAMERA_CS_PIN = 10;
 
 // ---------------------------------------------------------------------------
 // Capteur de gaz et fumée MQ-2 (CONTEXTE_TECHNIQUE.md, § 3.8)
-// Provisoire tant que D3 est ouverte (câblage de test P1.3).
 // Sortie analogique 0 à 5 V lue par l'ADC (référence : alimentation 5 V de la carte).
 // Broche officielle -> broche de la carte
 //   VCC -> 5V  : alimente aussi le chauffage du capteur
@@ -75,25 +73,23 @@ constexpr uint8_t MQ2_A0_PIN = A0;
 
 // ---------------------------------------------------------------------------
 // Écran TFT ST7735S 1,8" 128x160, 3,3 V, DollaTek (CONTEXTE_TECHNIQUE.md, § 3.12)
-// Provisoire tant que D3 est ouverte (câblage de test P1.4).
 // Bus : SPI mode 0 partagé avec la caméra, sans MISO. Module en 3,3 V : SCL, SDA, RES, DC
-// et CS passent chacun par un diviseur 1 kOhm (côté carte) / 2 kOhm (vers GND), 5 V -> environ 3,3 V.
+// et CS reliés directement (5 V, sans adaptation : choix validé, voir D3).
 // Broche officielle -> broche de la carte
 //   GND -> GND
 //   VCC -> 3.3V
-//   SCL -> D13 (diviseur) : bus SPI imposé par la carte (SCK)
-//   SDA -> D11 (diviseur) : bus SPI imposé par la carte (MOSI)
-//   RES -> D8  (diviseur) : définie dans le code
-//   DC  -> D9  (diviseur) : définie dans le code
-//   CS  -> D7  (diviseur) : définie dans le code
-//   BLK -> 3.3V           : rétroéclairage toujours allumé
+//   SCL -> D13  : bus SPI imposé par la carte (SCK)
+//   SDA -> D11  : bus SPI imposé par la carte (MOSI)
+//   RES -> D8   : définie dans le code
+//   DC  -> D9   : définie dans le code
+//   CS  -> D7   : définie dans le code
+//   BLK -> 3.3V : rétroéclairage toujours allumé
 constexpr uint8_t DISPLAY_CS_PIN = 7;
 constexpr uint8_t DISPLAY_RES_PIN = 8;
 constexpr uint8_t DISPLAY_DC_PIN = 9;
 
 // ---------------------------------------------------------------------------
 // LED rouge, bleue, jaune, orange (CONTEXTE_TECHNIQUE.md, § 3.4 à 3.7), via un registre à décalage 74HC595
-// Provisoire tant que D3 est ouverte (câblage de test P1.5).
 // 74HC595 absent de CONTEXTE_TECHNIQUE.md : noms de broches de sa datasheet.
 // Commandé en logiciel avec shiftOut, pas par le bus SPI matériel (partagé par la caméra et l'écran).
 // Broche du 74HC595 -> broche de la carte
@@ -123,7 +119,6 @@ constexpr uint8_t LEDS_ORANGE_BIT = 4;
 
 // ---------------------------------------------------------------------------
 // Boutons poussoirs (CONTEXTE_TECHNIQUE.md, § 3.10)
-// Provisoire tant que D3 est ouverte (câblage de test P1.5).
 // Entrées en INPUT_PULLUP (résistance de tirage interne) : relâché = HIGH, appuyé = LOW.
 // Chaque bouton : patte A1 sur la broche de la carte, patte B2 au GND (test de continuité du 2026-11-09).
 // Bouton -> broche de la carte
@@ -140,7 +135,6 @@ constexpr uint8_t BUTTONS_DOWN_PIN = 6;
 
 // ---------------------------------------------------------------------------
 // Buzzer passif SVM06N (CONTEXTE_TECHNIQUE.md, § 3.9)
-// Provisoire tant que D3 est ouverte (câblage de test P1.5).
 // Passif : la carte produit le signal carré avec tone().
 // D0 est aussi le RX de Serial1 (UART2) : ne pas utiliser Serial1 (Serial passe par d'autres broches).
 // Broche officielle -> broche de la carte
