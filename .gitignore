@@ -25,3 +25,11 @@ docker/**/data/
 # Images de test (firmware et serveur)
 firmware/output/
 server/output/
+
+# Hardware
+*.bak
+*.lck
+~*.lck
+*.kicad_prl
+*-backups/
+fp-info-cache
