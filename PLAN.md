@@ -12,7 +12,7 @@
 | P0    | Cadrage                            | ESSENTIEL         | [x]  |
 | P1    | Test des composants                | ESSENTIEL         | [x]  |
 | P2    | Test réseau précoce                | ESSENTIEL         | [x]  |
-| P3    | Câblage et schéma KiCad            | ESSENTIEL         | [ ]  |
+| P3    | Câblage et schéma KiCad            | ESSENTIEL         | [x]  |
 | P4    | Code de vérification au démarrage  | ESSENTIEL         | [ ]  |
 | P5    | Modèle de données et serveur       | ESSENTIEL         | [ ]  |
 | P6    | Firmware                           | ESSENTIEL         | [ ]  |
@@ -154,7 +154,8 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
   - Livrable : `hardware/kicad/cypher-home.kicad_sch` + export PDF.
   - Validation : revue ligne par ligne contre la matrice de compatibilité.
   - Dépend de : P3.1, D3, D10.
-- [ ] **P3.3 Câblage du prototype** (ESSENTIEL)
+- [x] **P3.3 Câblage du prototype** (ESSENTIEL)
+  - Note : critère atteint le 2026-11-13 (câblage entièrement réalisé et conforme au schéma ; continuité, polarité et absence de court-circuit contrôlées ; 74HC595 : VCC et SRCLR à 5V, OE à GND ; pins.h conforme ; self_test_run() complet réussi avec tout branché ; DS12A et convertisseur Step-Up non câblés, hors schéma : D10, P11) ; fiche et photo : docs/tests/cablage_prototype.md.
   - Tâches : câbler selon le schéma ; liste de contrôle (continuité, polarité, pas de court-circuit) avant mise sous tension ; vérifier que pins.h correspond au câblage réel.
   - Livrable : photo + liste de contrôle.
   - Validation : prototype conforme au schéma.
