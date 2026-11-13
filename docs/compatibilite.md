@@ -109,6 +109,8 @@ Revue du 2026-11-13 : schéma `hardware/kicad/cypher-home.kicad_sch` (export `ha
 
 Résultat : aucun écart entre le schéma et la matrice. Réserves : VCC du 74HC595 à confirmer au câblage ; courants non mesurés (C8 à C11) ; signaux 5 V de l'écran (C3).
 
+Réserve « VCC du 74HC595 » levée au câblage : VCC sur 5V confirmé le 2026-11-13 (P3.3, `docs/tests/cablage_prototype.md`).
+
 ## À collecter pour le compte rendu
 
 - Notice du module écran (non accessible en ligne) : à copier dans `hardware/datasheets/` si l'étudiant l'a (datasheet ST7735S copiée le 2026-11-13).
