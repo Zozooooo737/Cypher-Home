@@ -25,7 +25,7 @@ CypherHome/
 ├── CONTEXTE_TECHNIQUE.md
 ├── DECISIONS.md
 ├── PLAN.md
-├── docs/                    # CC, BC, CONVENTION_COMMITS.md
+├── docs/                    # CC, BC, CONVENTION_COMMITS.md, guide_self_test.md
 │   ├── cours/               # cours et rapports longs (un fichier par sujet)
 │   └── tests/               # _modele.md, fiches de test (une par composant), matrice de compatibilité
 ├── hardware/                # schéma KiCad, datasheets (voir hardware/CLAUDE.md)
