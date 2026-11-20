@@ -1,0 +1,91 @@
+Capture de la sortie série, P4.1, 2026-11-20 : tous les composants branchés, PC branché (serial_monitor.py).
+SSID masqué. Fiche : self_test.md.
+
+=== Self-test au demarrage ===
+
+----- TEST CAMERA -----
+[camera] resolution ............ 640x480
+[camera] format ................ JPEG
+[camera] capture ............... 164 ms
+
+----- TEST BME680 -----
+[bme680] temperature ........... 29.41 C
+[bme680] humidite .............. 35.36 %
+[bme680] pression .............. 1003.36 hPa
+[bme680] gaz ................... 265.46 kOhm
+
+----- TEST MQ2 -----
+[mq2] depuis demarrage ......... 5 s
+[mq2] A0 brut .................. 1086 / 16383
+[mq2] A0 tension ............... 0.31 V
+[mq2] etat ..................... PRECHAUFFAGE
+[mq2] alerte ................... NON
+
+----- TEST WIFI -----
+[wifi] firmware module ......... 0.6.1
+[wifi] ssid .................... <masque>
+[wifi] connexion ............... 1158 ms
+[wifi] tentatives .............. 1
+[wifi] adresse ip .............. 172.20.10.2
+[wifi] rssi .................... -43 dBm
+
+----- TEST MQTT -----
+[mqtt] broker .................. 172.20.10.3:1883
+[mqtt] connexion ............... 82 ms
+[mqtt] sujet ................... cypherhome/test
+[mqtt] message ................. bonjour de la carte, 6 s
+
+----- TEST PHOTO HTTP -----
+[photo] taille ................. 18504 octets
+[photo] capture ................ 182 ms
+[photo] envoi .................. 1839 ms
+[photo] total .................. 2021 ms
+[photo] debit .................. 9.83 ko/s
+
+----- TEST DISPLAY -----
+[display] resolution ........... 160x128
+[display] affichage ............ 164 ms
+
+----- TEST LEDS -----
+[leds] toutes .................. eteintes
+[leds] rouge ................... allumee seule
+[leds] bleue ................... allumee seule
+[leds] jaune ................... allumee seule
+[leds] orange .................. allumee seule
+[leds] toutes .................. allumees
+[leds] toutes .................. eteintes
+
+----- TEST BUZZER -----
+[buzzer] son 1 ................. 1000 Hz
+[buzzer] son 2 ................. 2000 Hz
+
+----- TEST BUTTONS -----
+[buttons] centre ............... pas appuye
+[buttons] droite ............... pas appuye
+[buttons] gauche ............... pas appuye
+[buttons] haut ................. pas appuye
+[buttons] bas .................. pas appuye
+[buttons] centre ............... appuye
+[buttons] centre ............... pas appuye
+[buttons] droite ............... appuye
+[buttons] droite ............... pas appuye
+[buttons] gauche ............... appuye
+[buttons] gauche ............... pas appuye
+[buttons] haut ................. appuye
+[buttons] haut ................. pas appuye
+[buttons] bas .................. appuye
+[buttons] bas .................. pas appuye
+
+----- TEST RECAPITULATIF -----
+[recap] camera ................. OK
+[recap] bme680 ................. OK
+[recap] mq2 .................... OK
+[recap] wifi ................... OK
+[recap] mqtt ................... OK
+[recap] photo http ............. OK
+[recap] ecran .................. OK
+[recap] leds ................... OK
+[recap] buzzer ................. OK
+[recap] boutons ................ OK
+[recap] total .................. 10 OK, 0 KO
+[recap] duree .................. 21 s
