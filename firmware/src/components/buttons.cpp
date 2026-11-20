@@ -41,6 +41,7 @@ bool buttons_is_pressed(Button button) {
 bool buttons_test() {
     const char *const names[BUTTON_COUNT] = {"centre", "droite", "gauche", "haut", "bas"};
     bool previous[BUTTON_COUNT];
+    uint8_t seen = 0;
 
     buttons_update();
     delay(BUTTONS_DEBOUNCE_MS);
@@ -65,8 +66,16 @@ bool buttons_test() {
             if (pressed != previous[i]) {
                 previous[i] = pressed;
                 self_test_print("buttons", names[i], pressed ? "appuye" : "pas appuye");
+                if (pressed) {
+                    seen |= bit(i);
+                }
             }
         }
+    }
+
+    if (seen != bit(BUTTON_COUNT) - 1) {
+        Serial.println("[buttons] KO");
+        return false;
     }
     return true;
 }

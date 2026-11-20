@@ -13,5 +13,5 @@ void buttons_update();
 // true si le bouton est appuyé, d'après le dernier buttons_update()
 bool buttons_is_pressed(Button button);
 
-// Test : KO si un bouton est lu appuyé au départ, sinon état des 5 boutons puis une ligne par changement pendant 15 s
+// Test : état des 5 boutons puis une ligne par changement pendant 7 s ; KO si un bouton est lu appuyé au départ ou si un des 5 n'a pas été appuyé
 bool buttons_test();

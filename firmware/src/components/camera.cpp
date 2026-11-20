@@ -178,8 +178,6 @@ void camera_read_end() {
 }
 
 bool camera_test() {
-    char line[48];
-
     if (!s_ready && !camera_setup()) {
         Serial.println("[camera] KO");
         return false;
@@ -194,35 +192,16 @@ bool camera_test() {
         return false;
     }
 
-    snprintf(line, sizeof(line), "IMG_BEGIN %lu %ux%u\n", static_cast<unsigned long>(length),
-             CAMERA_WIDTH_PX, CAMERA_HEIGHT_PX);
-    Serial.print(line);
-
-    static uint8_t block[CAMERA_READ_BLOCK_BYTES];
-    bool first_block = true;
-    bool soi_ok = false;
-    size_t count = 0;
-    start_ms = millis();
+    uint8_t head[2] = {0, 0};
     camera_read_begin();
-    while ((count = camera_read_block(block, sizeof(block))) > 0) {
-        if (first_block) {
-            soi_ok = (count >= 2 && block[0] == 0xFF && block[1] == 0xD8);
-            first_block = false;
-        }
-        Serial.write(block, count);
-        Serial.flush();
-    }
+    camera_read_block(head, sizeof(head));
     camera_read_end();
-    unsigned long transfer_ms = millis() - start_ms;
-
-    snprintf(line, sizeof(line), "IMG_END %lu\n", transfer_ms);
-    Serial.print(line);
-
-    if (!soi_ok) {
+    if (head[0] != 0xFF || head[1] != 0xD8) {
         Serial.println("[camera] KO");
         return false;
     }
 
+    char line[16];
     snprintf(line, sizeof(line), "%ux%u", CAMERA_WIDTH_PX, CAMERA_HEIGHT_PX);
     self_test_print("camera", "resolution", line);
     self_test_print("camera", "format", "JPEG");

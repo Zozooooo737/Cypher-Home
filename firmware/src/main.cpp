@@ -9,11 +9,7 @@
 #include "components/leds.h"
 #include "components/buttons.h"
 #include "components/buzzer.h"
-#include "components/wifi.h"
-#include "components/mqtt.h"
 #include "components/http.h"
-
-constexpr unsigned long SELF_TEST_PAUSE_MS = 5000;
 
 void setup() {
     Serial.begin(SERIAL_BAUD);
@@ -31,12 +27,10 @@ void setup() {
     leds_setup();
     buttons_setup();
     buzzer_setup();
-    wifi_setup();
-    mqtt_setup();
     http_setup();
+
+    self_test_run();
 }
 
 void loop() {
-    self_test_run();
-    delay(SELF_TEST_PAUSE_MS);
 }

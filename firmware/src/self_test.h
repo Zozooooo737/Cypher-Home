@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
-// Enchaîne les tests des composants validés sur le matériel
+// Enchaîne une fois les tests des composants, saute ceux dont le Wi-Fi ou la caméra manque, puis affiche le récapitulatif OK/KO
 void self_test_run();
 
 // Affiche « [tag] libellé ..... valeur unité » : les points alignent toutes les valeurs

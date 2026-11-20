@@ -15,7 +15,7 @@ size_t camera_read_block(uint8_t *buf, size_t max_len);
 // Fin de lecture : libère le bus SPI
 void camera_read_end();
 
-// Test : une capture envoyée au PC par le port série, puis ses caractéristiques, ou « [camera] KO »
+// Test : une capture dont l'en-tête FF D8 est contrôlé (image non envoyée), puis ses caractéristiques, ou « [camera] KO »
 bool camera_test();
 
 // Test : une photo envoyée en HTTP, puis taille, capture, envoi, total et débit, ou « [camera] KO » / « [http] KO » et le code d'erreur

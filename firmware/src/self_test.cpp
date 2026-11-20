@@ -9,24 +9,18 @@
 #include "components/buzzer.h"
 #include "components/wifi.h"
 #include "components/mqtt.h"
-#include "components/http.h"
 
-// Colonne où commencent les valeurs ; même valeur que VALUE_COLUMN de serial_monitor.py
 constexpr int SELF_TEST_VALUE_COLUMN = 33;
 
-constexpr unsigned long SELF_TEST_TOGETHER_HZ = 1000;
-constexpr unsigned long SELF_TEST_TOGETHER_SOUND_MS = 1500;
+static unsigned int s_ok_count = 0;
+static unsigned int s_ko_count = 0;
 
-static unsigned long s_pass_count = 0;
-
-// Bannière affichée avant chaque test, même format pour tous les composants
 static void self_test_banner(const char *name) {
     Serial.print("----- TEST ");
     Serial.print(name);
     Serial.println(" -----");
 }
 
-// Début de ligne : « [tag] libellé », points jusqu'à la colonne des valeurs, espace
 static void self_test_print_label(const char *tag, const char *label) {
     char line[64];
     int used = snprintf(line, sizeof(line), "[%s] %s ", tag, label);
@@ -56,78 +50,60 @@ void self_test_print(const char *tag, const char *label, float value, const char
     Serial.println(unit);
 }
 
-static void self_test_together() {
-    Bme680Data data;
-    leds_set_all(true);
-    self_test_print("ensemble", "leds", "4 allumees");
-    buzzer_play(SELF_TEST_TOGETHER_HZ, SELF_TEST_TOGETHER_SOUND_MS);
-    self_test_print("ensemble", "buzzer", SELF_TEST_TOGETHER_HZ, "Hz");
-    if (!bme680_read(data)) {
-        Serial.println("[bme680] KO");
-    }
-    display_show_measures(data, mq2_read());
-    self_test_print("ensemble", "ecran", "mesures affichees");
-    camera_test();
-    leds_set_all(false);
+static bool self_test_step(const char *name, bool (*test)()) {
+    self_test_banner(name);
+    bool ok = test();
+    Serial.println();
+    return ok;
 }
 
-// Chaque test : bannière, test, puis une ligne vide
+static bool self_test_skip(const char *name, const char *line) {
+    self_test_banner(name);
+    Serial.println(line);
+    Serial.println();
+    return false;
+}
+
+static void self_test_recap(const char *name, bool ok) {
+    self_test_print("recap", name, ok ? "OK" : "KO");
+    if (ok) {
+        s_ok_count++;
+    } else {
+        s_ko_count++;
+    }
+}
+
 void self_test_run() {
-    s_pass_count++;
-    Serial.print("\n=== Self-test : passe ");
-    Serial.print(s_pass_count);
-    Serial.print(", ");
-    Serial.print(millis() / 1000);
-    Serial.println(" s depuis le demarrage ===");
-    Serial.println();
+    Serial.println("\n=== Self-test au demarrage ===\n");
 
-    self_test_banner("CAMERA");
-    camera_test();
-    Serial.println();
+    bool camera_ok = self_test_step("CAMERA", camera_test);
+    bool bme680_ok = self_test_step("BME680", bme680_test);
+    bool mq2_ok = self_test_step("MQ2", mq2_test);
+    bool wifi_ok = self_test_step("WIFI", wifi_test);
+    bool mqtt_ok = wifi_ok ? self_test_step("MQTT", mqtt_test) : self_test_skip("MQTT", "[mqtt] KO (wifi)");
+    bool photo_ok = !wifi_ok     ? self_test_skip("PHOTO HTTP", "[http] KO (wifi)")
+                    : !camera_ok ? self_test_skip("PHOTO HTTP", "[http] KO (camera)")
+                                 : self_test_step("PHOTO HTTP", camera_http_test);
+    bool display_ok = self_test_step("DISPLAY", display_test);
+    bool leds_ok = self_test_step("LEDS", leds_test);
+    bool buzzer_ok = self_test_step("BUZZER", buzzer_test);
+    bool buttons_ok = self_test_step("BUTTONS", buttons_test);
 
-    self_test_banner("BME680");
-    bme680_test();
-    Serial.println();
+    self_test_banner("RECAPITULATIF");
+    self_test_recap("camera", camera_ok);
+    self_test_recap("bme680", bme680_ok);
+    self_test_recap("mq2", mq2_ok);
+    self_test_recap("wifi", wifi_ok);
+    self_test_recap("mqtt", mqtt_ok);
+    self_test_recap("photo http", photo_ok);
+    self_test_recap("ecran", display_ok);
+    self_test_recap("leds", leds_ok);
+    self_test_recap("buzzer", buzzer_ok);
+    self_test_recap("boutons", buttons_ok);
 
-    self_test_banner("MQ2");
-    mq2_test();
+    char total[24];
+    snprintf(total, sizeof(total), "%u OK, %u KO", s_ok_count, s_ko_count);
+    self_test_print("recap", "total", total);
+    self_test_print("recap", "duree", millis() / 1000, "s");
     Serial.println();
-
-    self_test_banner("DISPLAY");
-    display_test();
-    Serial.println();
-
-    self_test_banner("LEDS");
-    leds_test();
-    Serial.println();
-
-    self_test_banner("BUTTONS");
-    buttons_test();
-    Serial.println();
-
-    self_test_banner("BUZZER");
-    buzzer_test();
-    Serial.println();
-
-    self_test_banner("WIFI");
-    wifi_test();
-    Serial.println();
-
-    self_test_banner("MQTT");
-    mqtt_test();
-    Serial.println();
-
-    self_test_banner("HTTP");
-    http_test();
-    Serial.println();
-
-    self_test_banner("PHOTO HTTP");
-    camera_http_test();
-    Serial.println();
-
-    self_test_banner("ENSEMBLE");
-    self_test_together();
-    Serial.println();
-
-    Serial.println("=== Self-test : fin ===");
 }
