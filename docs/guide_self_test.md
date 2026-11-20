@@ -1,6 +1,6 @@
 # Guide : lancer `self_test_run()`
 
-But : les 12 tests réussis dans une même passe. La carte relance `self_test_run()` en boucle, avec 5 s de pause entre deux passes. Commandes PowerShell, lancées depuis la racine du dépôt sauf indication contraire.
+But : les 10 tests et le récapitulatif réussis. La carte exécute `self_test_run()` une seule fois, à la mise sous tension ou après un appui sur RESET (environ 20 s [estimation]). Commandes PowerShell, lancées depuis la racine du dépôt sauf indication contraire.
 
 ## 1. Avant de commencer (à chaque session)
 
@@ -49,7 +49,7 @@ Attendu : `ecoute sur 0.0.0.0:8000, POST /upload (Ctrl+C pour arreter)`.
 pio run -d firmware -t upload
 firmware\scripts\.venv\Scripts\python firmware\scripts\serial_monitor.py
 ```
-Attendu : `[moniteur] Connecté à COMx (460800 bauds)`, puis les tests. Pour téléverser de nouveau : Ctrl+C sur le moniteur d'abord. Carte non trouvée : ajouter `--port COM5` (numéro du port de la carte).
+Attendu : `[moniteur] Connecté à COMx (460800 bauds)`. Appuyer alors sur le bouton RESET de la carte : les tests défilent (sans cet appui, le début peut être manqué pendant le démarrage du moniteur). Pour téléverser de nouveau : Ctrl+C sur le moniteur d'abord. Carte non trouvée : ajouter `--port COM5` (numéro du port de la carte).
 Première fois seulement, avant le moniteur :
 ```powershell
 py -m venv firmware\scripts\.venv
@@ -60,20 +60,21 @@ firmware\scripts\.venv\Scripts\python -m pip install -r firmware\scripts\require
 
 | # | Test | Prérequis | Validé si |
 |---|---|---|---|
-| 1 | CAMERA | moniteur lancé (terminal 4), sinon l'image s'affiche en caractères illisibles | `[moniteur] photo enregistree ... cam_<date>.jpg` (dans `firmware/output/`, s'ouvre), puis `[camera] resolution 640x480`, `format JPEG`, `capture` |
+| 1 | CAMERA | aucun (l'image n'est plus envoyée sur le port série) | `[camera] resolution 640x480`, `format JPEG`, `capture` |
 | 2 | BME680 | aucun | `temperature`, `humidite`, `pression`, `gaz` affichés, valeurs plausibles |
 | 3 | MQ2 | aucun ; état `PRET` seulement 300 s après la mise sous tension | `etat PRECHAUFFAGE` ou `PRET`, `alerte NON` en air normal |
-| 4 | DISPLAY | aucun | `resolution 160x128` ; à l'écran : « Cypher Home », « Ecran OK », puis Rouge, Vert, Bleu dans leur couleur |
-| 5 | LEDS | aucun | rouge, bleue, jaune, orange s'allument seules dans cet ordre, puis les 4 ensemble |
-| 6 | BUTTONS | ne toucher aucun bouton au début ; dès les 5 lignes `pas appuye`, appuyer puis relâcher chaque bouton dans les 7 s | chaque bouton affiche `appuye` puis `pas appuye`, sous le bon nom |
-| 7 | BUZZER | aucun | deux sons entendus, grave (1000 Hz) puis aigu (2000 Hz) |
-| 8 | WIFI | § 1, étapes 2 et 4 | `adresse ip ... 172.20.10.x` |
-| 9 | MQTT | terminaux 1 et 2 | carte : `broker <IP du PC>:1883` et `message` ; terminal 2 : `cypherhome/test bonjour de la carte, NN s` |
-| 10 | HTTP | terminal 3 | carte : `code http 200` pour 16384, 32768, 65536 et 131072 octets ; terminal 3 : `motif : conforme` 4 fois |
-| 11 | PHOTO HTTP | terminal 3 | carte : lignes `[photo]` (taille, capture, envoi, total, debit) ; terminal 3 : `photo recue : N octets -> photo_<date>_<taille>.jpg`, fichier dans `server/output/` qui s'ouvre |
-| 12 | ENSEMBLE | tous les prérequis ci-dessus | 4 LED allumées et un son pendant le test, mesures affichées à l'écran, puis photo enregistrée par le moniteur comme au test 1 |
+| 4 | WIFI | § 1, étapes 2 et 4 | `adresse ip ... 172.20.10.x` |
+| 5 | MQTT | terminaux 1 et 2 | carte : `broker <IP du PC>:1883` et `message` ; terminal 2 : `cypherhome/test bonjour de la carte, NN s` |
+| 6 | PHOTO HTTP | terminal 3 | carte : lignes `[photo]` (taille, capture, envoi, total, debit) ; terminal 3 : `photo recue : N octets -> photo_<date>_<taille>.jpg`, fichier dans `server/output/` qui s'ouvre |
+| 7 | DISPLAY | aucun | `resolution 160x128` ; à l'écran : « Cypher Home », « Ecran OK », puis Rouge, Vert, Bleu dans leur couleur |
+| 8 | LEDS | aucun | rouge, bleue, jaune, orange s'allument seules dans cet ordre, puis les 4 ensemble |
+| 9 | BUZZER | aucun | deux sons entendus, grave (1000 Hz) puis aigu (2000 Hz) |
+| 10 | BUTTONS | ne toucher aucun bouton au début ; dès les 5 lignes `pas appuye` (juste après les deux sons), appuyer puis relâcher **les 5 boutons** dans les 7 s | chaque bouton affiche `appuye` puis `pas appuye`, sous le bon nom |
+| — | RECAPITULATIF | aucun | une ligne `[recap]` par composant, `total 10 OK, 0 KO` et `duree` |
 
-Un test raté affiche `[composant] KO` (suivi de `code erreur` pour MQTT et HTTP).
+Un test raté affiche `[composant] KO` (suivi de `code erreur` pour MQTT et HTTP). Wi-Fi KO : MQTT et PHOTO HTTP sont sautés (`[mqtt] KO (wifi)`, `[http] KO (wifi)`) ; caméra KO : PHOTO HTTP est sauté (`[http] KO (camera)`).
+
+Récapitulatif : écran, LED, buzzer et MQ-2 sont toujours OK, car la carte ne peut pas détecter leur absence : les vérifier à l'oeil, à l'oreille ou par la valeur affichée. Boutons : KO si l'un des 5 n'a pas été appuyé pendant les 7 s.
 
 ## 4. Causes connues d'un KO
 
@@ -83,6 +84,8 @@ Un test raté affiche `[composant] KO` (suivi de `code erreur` pour MQTT et HTTP
 | `[mqtt] KO` | terminal 1 (broker démarré), IP du PC dans `secrets.h`, profil privé, règle de pare-feu « Cypher Home - MQTT 1883 » ; après un redémarrage du broker, relancer le terminal 2 |
 | `[http] KO`, code -1 | terminal 3 (serveur lancé), IP du PC dans `secrets.h`, règle de pare-feu « Cypher Home - HTTP 8000 » |
 | `[http] KO`, code -3 | serveur coupé pendant un envoi : le relancer |
+| `[mqtt] KO (wifi)`, `[http] KO (wifi)` | voir `[wifi] KO` |
+| `[http] KO (camera)` | voir `[camera] KO` (fiche `docs/tests/camera.md`) |
 
 Réactiver une règle de pare-feu (PowerShell administrateur) :
 ```powershell

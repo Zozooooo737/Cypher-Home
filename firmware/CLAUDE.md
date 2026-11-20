@@ -28,7 +28,7 @@ firmware/
 │   └── ArduCAM/                # copie locale versionnée (D2) ; origine et correctifs : CYPHER_SOURCE.md
 ├── src/
 │   ├── main.cpp
-│   ├── self_test.h / .cpp      # self_test_run() : enchaîne les tests validés
+│   ├── self_test.h / .cpp      # self_test_run() : tests au démarrage + récapitulatif
 │   └── components/
 │       ├── camera.h / .cpp     # P1.1
 │       ├── bme680.h / .cpp     # P1.2
@@ -56,9 +56,9 @@ Aucun numéro de broche en dur dans un module : tout vient de `pins.h`.
 **Cas de la caméra (P1.1).**
 - Bibliothèque : copie locale `lib/ArduCAM/` (fork R4 de la bibliothèque ArduCAM, voir `CYPHER_SOURCE.md`), choix D2 de `DECISIONS.md`.
 - API : `camera_setup()`, `camera_capture(uint32_t &jpeg_length)`, lecture en rafale `camera_read_begin()` / `camera_read_block(buf, max_len)` / `camera_read_end()`, `camera_test()`. La lecture ne code aucune destination en dur : la même API servira à l'envoi HTTP (P2.5).
-- L'image n'est jamais entièrement en RAM (32 ko de SRAM) : lecture par blocs de `CAMERA_READ_BLOCK_BYTES` depuis le tampon de 8 Mo de la caméra, envoi au fil de l'eau. Entre `camera_read_begin()` et `camera_read_end()`, le bus SPI est réservé à la caméra.
-- `camera_test()` : une capture à la résolution de `config.h`, envoi de la trame image, puis une ligne par caractéristique (résolution, format, temps de capture). Contrôle : les 2 premiers octets du premier bloc doivent être FF D8 ; l'image est envoyée en entier dans tous les cas, puis, si FF D8 est absent, ligne `[camera] KO` à la place des caractéristiques et retour `false`. Échec de mise en place ou de capture : ligne `[camera] KO`. La pause de 5 s entre deux tests est dans `main.cpp` (`SELF_TEST_PAUSE_MS`). Pas de compte à rebours ni de commande clavier. Si `camera_setup()` a échoué au démarrage, ou après un délai de capture dépassé (drapeau de fin remis à zéro), `camera_test()` la retente.
-- La longueur lue dans le tampon de la caméra dépasse la fin du JPEG (dernier FF D9) de quelques octets de remplissage (12 à 19 octets observés en 640x480) : ce n'est pas une erreur. La carte les envoie ; le script les retire du fichier enregistré, sans l'afficher.
+- L'image n'est jamais entièrement en RAM (32 ko de SRAM) : lecture par blocs (taille choisie par l'appelant : `HTTP_BLOCK_BYTES` pour l'envoi HTTP) depuis le tampon de 8 Mo de la caméra, envoi au fil de l'eau. Entre `camera_read_begin()` et `camera_read_end()`, le bus SPI est réservé à la caméra.
+- `camera_test()` (depuis P4.1) : une capture à la résolution de `config.h`, lecture des 2 premiers octets seulement, qui doivent être FF D8 (sinon `[camera] KO` et retour `false`), puis une ligne par caractéristique (résolution, format, temps de capture). L'image n'est plus envoyée sur le port série : la carte ne peut pas savoir si un PC écoute (voir « Port série de la carte »). L'image complète est contrôlée par le serveur dans le test PHOTO HTTP (`camera_http_test()`). Échec de mise en place ou de capture : ligne `[camera] KO`. Si `camera_setup()` a échoué au démarrage, ou après un délai de capture dépassé (drapeau de fin remis à zéro), `camera_test()` la retente.
+- La longueur lue dans le tampon de la caméra dépasse la fin du JPEG (dernier FF D9) de quelques octets de remplissage (12 à 19 octets observés en 640x480) : ce n'est pas une erreur. La carte les envoie avec l'image.
 - Pour distinguer un problème de câblage d'un problème de code : un exemple de la bibliothèque dans un projet temporaire hors du dépôt (ni committé, ni dans `src/`).
 
 ## Bibliothèques tierces (`lib/`)
@@ -67,17 +67,19 @@ Aucun numéro de broche en dur dans un module : tout vient de `pins.h`.
 - Condition d'arrêt : si le portage demande plus que de petits correctifs, ou si le composant n'est pas détecté alors que le câblage est correct, s'arrêter et rapporter l'erreur exacte avec les options. Ne jamais réécrire une bibliothèque sans l'accord de l'étudiant.
 
 ## Enchaînement des tests (`src/self_test.h/.cpp`)
-`void self_test_run()` appelle les `<composant>_test()`. On y ajoute **une ligne par composant après sa validation sur le matériel par l'étudiant** (évite les faux KO sur un composant non câblé). Exception, sur demande de l'étudiant : le composant en cours de mise au point peut y figurer (cas de la caméra en P1.1). Le récapitulatif OK/KO est finalisé en P4.1.
+`void self_test_run()` appelle les `<composant>_test()`, une seule fois, à la fin de `setup()` de `main.cpp` (P4.1) ; `loop()` est vide en attendant le firmware réel (P6). Un nouveau composant y reçoit **une ligne après sa validation sur le matériel par l'étudiant** (évite les faux KO sur un composant non câblé).
 
-- **Développement (P1 à P3)** : `setup()` de `main.cpp` appelle les `<composant>_setup()` ; `loop()` appelle `self_test_run()` suivi d'une pause (constante locale dans `main.cpp`, supprimée avec l'appel). Pendant la mise au point d'un composant, on peut n'appeler que son `<composant>_test()`.
-- **Version finale (P4.1)** : `self_test_run()` passe dans `setup()` (exécution unique au démarrage) ; `loop()` contient le firmware réel.
+- Ordre : CAMERA, BME680, MQ2, WIFI, MQTT, PHOTO HTTP, DISPLAY, LEDS, BUZZER, BUTTONS (tests visibles en dernier : sans PC, les voir prouve que les tests réseau sont finis), puis RECAPITULATIF.
+- Les connexions Wi-Fi et MQTT sont faites par `wifi_test()` et `mqtt_test()` (une tentative chacune), pas par `setup()`. Wi-Fi KO : MQTT et PHOTO HTTP sautés, lignes `[mqtt] KO (wifi)` et `[http] KO (wifi)` ; caméra KO : PHOTO HTTP sauté, `[http] KO (camera)`.
+- Récapitulatif, sur le port série seulement : une ligne `[recap]` par composant, OK ou KO selon le retour de son test, puis le total et la durée. Écran, LED, buzzer et MQ-2 sont toujours OK (absence non détectable) ; boutons OK seulement si les 5 ont été appuyés pendant la fenêtre de 7 s.
+- Pendant la mise au point d'un composant, on peut n'appeler que son `<composant>_test()`.
 - Broches CS des périphériques SPI : à mettre à `HIGH` dès le début de `setup()`, avant tout `<composant>_setup()`. À traiter dès le deuxième périphérique SPI (P1.4 ou P1.7).
 
 ## Port série de la carte (`Serial`)
 Faits vérifiés dans le framework (cœur Renesas 1.6.0, `libfsp.a`) :
 - `Serial` n'est **pas** l'USB natif : la carte PlatformIO `uno_r4_wifi` définit `NO_USB`, donc `Serial` est l'UART SCI9 (P109/P110) vers l'ESP32-S3, qui fait le pont USB. Le débit réel est celui de `Serial.begin()` : `SERIAL_BAUD` de `config.h` (460800 bauds ; mesuré en P1.1 : 11,1 ko/s à 115200 bauds, environ 41 ko/s à 460800 bauds), à garder égal au débit par défaut du script série.
-- `while (!Serial)` n'attend rien (`operator bool` renvoie toujours `true`). Un envoi ne bloque jamais faute de PC ; [H] les octets sont alors perdus.
-- **Piège** : SCI9 n'a pas de FIFO. `Serial.write(buf, n)` rend la main dès que le dernier octet est chargé dans le registre d'émission, et l'écriture suivante y place son premier octet sans attendre. Si elle arrive moins d'une durée d'octet plus tard (environ 22 µs à 460800 bauds), le dernier octet du bloc est écrasé (constaté en P1.1 à 115200 bauds : 1 octet manquant par image). Règle : appeler `Serial.flush()` après tout `Serial.write(buf, n)` suivi d'une autre écriture. Sur ce cœur, `flush()` attend l'interruption de fin d'émission (TEI, registre à décalage vide : vérifié dans le code). Les écritures octet par octet (`print`, `println`, `write(c)`) ne sont pas concernées : chacune rend la main quand le registre d'émission est vide. Dans `camera_test()` : `flush()` après chaque bloc, y compris le dernier, avant la ligne `IMG_END`.
+- `while (!Serial)` n'attend rien (`operator bool` renvoie toujours `true`) et la liaison n'a aucune ligne DTR ni RTS : la carte ne peut pas savoir si un PC écoute. Un envoi ne bloque jamais faute de PC ; [H] les octets sont alors perdus.
+- **Piège** : SCI9 n'a pas de FIFO. `Serial.write(buf, n)` rend la main dès que le dernier octet est chargé dans le registre d'émission, et l'écriture suivante y place son premier octet sans attendre. Si elle arrive moins d'une durée d'octet plus tard (environ 22 µs à 460800 bauds), le dernier octet du bloc est écrasé (constaté en P1.1 à 115200 bauds : 1 octet manquant par image). Règle : appeler `Serial.flush()` après tout `Serial.write(buf, n)` suivi d'une autre écriture. Sur ce cœur, `flush()` attend l'interruption de fin d'émission (TEI, registre à décalage vide : vérifié dans le code). Les écritures octet par octet (`print`, `println`, `write(c)`) ne sont pas concernées : chacune rend la main quand le registre d'émission est vide. (Cas de l'ancienne trame image de `camera_test()`, retirée en P4.1.)
 
 ## Broches : `include/pins.h`
 - **En tête** : un index des broches de la carte utilisées, une ligne par broche (`// D10 : CAMERA_CS`), mis à jour à chaque composant. Il sert à repérer les doublons et à préparer D3.
@@ -99,7 +101,7 @@ Créé seulement quand le premier secret apparaît (SSID et mot de passe Wi-Fi, 
 Un **seul script Python remplace le moniteur série PlatformIO**, pour tous les composants : un seul programme peut tenir le port COM à la fois, et le moniteur PlatformIO ne sait pas traiter du binaire. Mode d'emploi en tête du script.
 
 - Il affiche en direct les lignes de texte de la carte ; ses propres messages commencent par `[moniteur]`.
-- Trame image (provisoire, phase P1, transport de test sans lien avec D4). Pendant l'envoi d'une image, aucun autre texte ne passe sur `Serial` :
+- Trame image (provisoire, phase P1, transport de test sans lien avec D4 ; plus envoyée par le firmware depuis P4.1, le script la gère encore). Pendant l'envoi d'une image, aucun autre texte ne passe sur `Serial` :
   ```text
   IMG_BEGIN <taille_octets> <largeur>x<hauteur>\n
   <exactement taille_octets octets bruts>
@@ -130,6 +132,6 @@ Un **seul script Python remplace le moniteur série PlatformIO**, pour tous les 
 - Les noms de broches des modules sont ceux de `CONTEXTE_TECHNIQUE.md`. Pas de câblage ni de broches supposés : utilise les affectations de `DECISIONS.md` ; tant que D3 est ouverte, seules celles de `pins.h` validées par l'étudiant font foi.
 - Points de vigilance matériel à rappeler quand c'est pertinent : la carte fonctionne en logique 5 V alors que l'écran TFT et certains modules sont en 3,3 V ; la caméra (SPI + I2C) et l'écran (SPI) partagent le bus SPI, avec un CS par périphérique ; le BME680 est en SPI ou en I2C selon D1 (ouverte) ; la caméra a besoin de beaucoup de mémoire et d'un débit SPI suffisant : priorité à des photos exploitables.
 - Secrets : voir plus haut (`secrets.h` non versionné, `secrets.example.h` versionné).
-- Code de production non bloquant : pas de `delay` long dans la boucle principale. Seule exception : la pause entre deux passes de `self_test_run()` en développement, supprimée en P4.1.
+- Code de production non bloquant : pas de `delay` long dans la boucle principale (les `delay` des tests ne tournent qu'au démarrage).
 - Cadences visées par le CC : mesure toutes les 5 s, enregistrement serveur toutes les 30 s, événements immédiats.
 - Termine toujours par une liste « À vérifier sur la carte ».
