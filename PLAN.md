@@ -13,7 +13,7 @@
 | P1    | Test des composants                | ESSENTIEL         | [x]  |
 | P2    | Test réseau précoce                | ESSENTIEL         | [x]  |
 | P3    | Câblage et schéma KiCad            | ESSENTIEL         | [x]  |
-| P4    | Code de vérification au démarrage  | ESSENTIEL         | [ ]  |
+| P4    | Code de vérification au démarrage  | ESSENTIEL         | [x]  |
 | P5    | Modèle de données et serveur       | ESSENTIEL         | [ ]  |
 | P6    | Firmware                           | ESSENTIEL         | [ ]  |
 | P7    | Dashboard                          | ESSENTIEL         | [ ]  |
@@ -167,7 +167,8 @@ Chaque composant validé produit : un module `firmware/src/components/<composant
 
 ## P4 : Code de vérification au démarrage
 
-- [ ] **P4.1 Finaliser `self_test_run()`** (ESSENTIEL)
+- [x] **P4.1 Finaliser `self_test_run()`** (ESSENTIEL)
+  - Note : critère atteint le 2026-11-20 (self_test_run() exécuté une fois dans setup() ; tout branché : 10 OK, 0 KO en 21 s ; caméra débranchée : [camera] KO et [http] KO (camera) ; BME680 débranché : [bme680] KO ; partage coupé : [wifi] KO, MQTT et PHOTO HTTP sautés, 47 s ; bouton non appuyé : [buttons] KO ; sans PC : déroulement complet ; écran et MQ-2 débranchés non détectables, limite acceptée) ; image du test caméra plus envoyée sur le port série ; fiche et capture : docs/tests/self_test.md, docs/tests/self_test_capture.txt.
   - Tâches : `self_test_run()` existe depuis P0.3 et reçoit une ligne par composant validé en P1 ; ajouter le test Wi-Fi (P2.1) ; afficher un récapitulatif OK/KO par composant ; déplacer l'appel de `loop()` vers `setup()` (exécution unique) ; un composant débranché donne un KO clair sans bloquer le démarrage ; l'image du test caméra n'est pas envoyée si aucun PC n'est connecté au port série. [H]
   - Livrable : `firmware/src/self_test.cpp`.
   - Validation : tout passe ; un composant débranché donne un KO clair.
